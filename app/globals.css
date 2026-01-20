@@ -1,0 +1,56 @@
+@import "tailwindcss";
+
+:root {
+  /* Core Colors */
+  --background: #242423;
+  --foreground: #fcf7f8;
+  
+  /* Accent Colors */
+  --lemon: #f9e900;
+  --slate: #6e8898;
+}
+
+
+@theme inline {
+  /* Colors */
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-lemon: var(--lemon);
+  --color-slate: var(--slate);
+  
+  /* Typography */
+  --font-sans: var(--font-inter), system-ui, -apple-system, sans-serif;
+  --font-heading: "Helvetica Neue", Helvetica, Arial, sans-serif;
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  cursor: none;
+}
+
+/* Hide cursor on interactive elements */
+a,
+button,
+input,
+textarea,
+select,
+[role="button"],
+[tabindex] {
+  cursor: none;
+}
+
+.hero-title {
+  /* Target for GSAP text reveal animation */
+}
+
+.objective-text {
+  /* Target for GSAP fade-in animation */
+}
+
+.font-heading {
+  font-family: var(--font-heading);
+}
