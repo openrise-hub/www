@@ -1,8 +1,8 @@
 export default function Objective() {
   return (
-    <section className="py-20 px-6 border-t border-slate/20">
+    <section id="thegoal" className="py-20 px-6 border-t border-slate/20">
       <article className="max-w-6xl mx-auto">
-        <h2 className="text-xs uppercase tracking-[0.25em] text-slate mb-8 font-semibold font-heading">
+        <h2 className="text-s uppercase tracking-[0.25em] text-slate mb-8 font-semibold font-heading">
           The Goal
         </h2>
         

@@ -1,8 +1,12 @@
+'use client';
+
 import Image from "next/image";
 import Link from "next/link";
+import { useState, useEffect } from "react";
 
 const navLinks = [
   { label: "Home", href: "/" },
+  { label: "The Goal", href: "#thegoal" },
   { label: "Repositories", href: "#repositories" },
   { label: "Community", href: "#community" },
   { label: "Blog", href: "#blog" },
@@ -10,9 +14,28 @@ const navLinks = [
 ];
 
 export default function Header() {
+  const [isScrolled, setIsScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 20);
+    };
+
+    handleScroll();
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
   return (
-    <header className="sticky top-0 left-0 right-0 z-50 px-6 py-6">
-      <div className="max-w-6xl mx-auto flex items-center justify-between">
+    <header className="sticky top-0 left-0 right-0 z-50 w-full flex justify-center pt-2 pointer-events-none">
+      <div className={`
+        w-full max-w-6xl flex items-center justify-between px-6 py-4 pointer-events-auto
+        transition-all duration-500 ease-in-out
+        ${isScrolled
+          ? "bg-background/80 backdrop-blur-md shadow-sm"
+          : "bg-background/0 backdrop-blur-none shadow-none"
+        }
+      `}>
         <Image
           src="/OpenriseWhiteTextNoBG.svg"
           alt="Openrise"

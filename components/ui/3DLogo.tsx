@@ -56,7 +56,7 @@ function Scene() {
 
 export default function Logo3D() {
   return (
-    <div className="w-full aspect-square max-w-sm lg:max-w-lg">
+    <div className="w-full aspect-square max-w-xs md:max-w-sm lg:max-w-lg">
       <Canvas camera={{ position: [0, 0, 5], fov: 35 }}>
         <Suspense fallback={null}>
           <Scene />

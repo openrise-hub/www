@@ -7,7 +7,7 @@ export const siteConfig = {
   url: "https://openrise.dev",
   links: {
     github: "https://github.com/openrise-hub",
-    linkedin: "https://linkedin.com/company/openrise",
+    linkedin: "https://www.linkedin.com/company/openrise-dev",
   },
 } as const;
 
