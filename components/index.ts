@@ -5,4 +5,4 @@ export { Navbar, Footer } from "./layout";
 export { Button, ButtonLink, GithubIcon, ArrowRightIcon } from "./ui";
 
 // Section components
-export { Hero, Objective } from "./sections";
+export { Hero, Objective, Repositories, Community, Blog, Contact } from "./sections";

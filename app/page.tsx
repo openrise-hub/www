@@ -1,4 +1,4 @@
-import { Footer, Hero, Objective } from "@/components";
+import { Footer, Hero, Objective, Repositories, Community, Blog, Contact } from "@/components";
 import FloatingLines from "@/components/ui/LinesBackground";
 
 export default function Home() {
@@ -17,6 +17,10 @@ export default function Home() {
       <main className="flex-1">
         <Hero />
         <Objective />
+        <Repositories />
+        <Community />
+        <Blog />
+        <Contact />
       </main>
 
       <Footer />

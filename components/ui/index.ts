@@ -1,2 +1,2 @@
 export { Button, ButtonLink } from "./Button";
-export { GithubIcon, ArrowRightIcon, LinkedinIcon } from "./icons";
+export { GithubIcon, ArrowRightIcon, LinkedinIcon, MailIcon } from "./icons";
