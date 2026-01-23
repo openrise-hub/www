@@ -28,15 +28,20 @@ const TargetCursor: React.FC<TargetCursorProps> = ({
   const tickerFnRef = useRef<(() => void) | null>(null);
   const activeStrengthRef = useRef({ current: 0 });
 
-  const isMobile = useMemo(() => {
+  // Detect touch-only devices - cursor should only show for mouse users
+  const isTouchDevice = useMemo(() => {
     if (typeof window === 'undefined' || typeof navigator === 'undefined') return false;
     
+    // Check if device has touch capabilities
     const hasTouchScreen = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
-    const isSmallScreen = window.innerWidth <= 768;
-    const userAgent = navigator.userAgent || navigator.vendor || (window as unknown as { opera?: string }).opera || '';
-    const mobileRegex = /android|webos|iphone|ipad|ipod|blackberry|iemobile|opera mini/i;
-    const isMobileUserAgent = mobileRegex.test(userAgent.toLowerCase());
-    return (hasTouchScreen && isSmallScreen) || isMobileUserAgent;
+    
+    // Check if device primarily uses touch (no precise pointing device)
+    const hasCoarsePointer = window.matchMedia('(pointer: coarse)').matches;
+    const hasFinePointer = window.matchMedia('(pointer: fine)').matches;
+    
+    // If device has touch AND no fine pointer (mouse), it's touch-only
+    // Devices with both (laptops with touch) will have fine pointer and should show cursor
+    return hasTouchScreen && hasCoarsePointer && !hasFinePointer;
   }, []);
 
   const constants = useMemo(() => ({ borderWidth: 3, cornerSize: 12 }), []);
@@ -47,7 +52,7 @@ const TargetCursor: React.FC<TargetCursorProps> = ({
   }, []);
 
   useEffect(() => {
-    if (isMobile || !cursorRef.current) return;
+    if (isTouchDevice || !cursorRef.current) return;
 
     const activeStrengthObj = activeStrengthRef.current;
 
@@ -269,19 +274,19 @@ const TargetCursor: React.FC<TargetCursorProps> = ({
       targetCornerPositionsRef.current = null;
       activeStrengthObj.current = 0;
     };
-  }, [targetSelector, spinDuration, moveCursor, constants, hideDefaultCursor, isMobile, hoverDuration, parallaxOn]);
+  }, [targetSelector, spinDuration, moveCursor, constants, hideDefaultCursor, isTouchDevice, hoverDuration, parallaxOn]);
 
   useEffect(() => {
-    if (isMobile || !cursorRef.current || !spinTl.current) return;
+    if (isTouchDevice || !cursorRef.current || !spinTl.current) return;
     if (spinTl.current.isActive()) {
       spinTl.current.kill();
       spinTl.current = gsap
         .timeline({ repeat: -1 })
         .to(cursorRef.current, { rotation: '+=360', duration: spinDuration, ease: 'none' });
     }
-  }, [spinDuration, isMobile]);
+  }, [spinDuration, isTouchDevice]);
 
-  if (isMobile) {
+  if (isTouchDevice) {
     return null;
   }
 

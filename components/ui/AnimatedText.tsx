@@ -4,8 +4,12 @@ import { useRef, useEffect } from 'react';
 import * as THREE from 'three';
 import * as BAS from 'three-bas';
 import gsap from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { FontLoader } from 'three/examples/jsm/loaders/FontLoader.js';
 import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry.js';
+
+// Register ScrollTrigger plugin
+gsap.registerPlugin(ScrollTrigger);
 
 interface AnimatedTextProps {
   text?: string | string[];
@@ -235,14 +239,36 @@ export default function AnimatedText({ text = 'OPENRISE', className }: AnimatedT
     const textGroup = new THREE.Group();
     scene.add(textGroup);
     
-    // Responsive scaling - considers both width and aspect ratio for tall screens (iPad portrait)
+    // Responsive scaling - text should fill viewport width appropriately
+    // Base width represents the "designed for" width where scale = 1
     const baseWidth = 1200;
+    
     function updateScale() {
-      const aspectRatio = container.clientWidth / container.clientHeight;
-      // For tall screens (aspect ratio < 0.8), scale down further
-      const aspectScale = aspectRatio < 0.8 ? 0.7 : aspectRatio < 1 ? 0.85 : 1;
-      const widthScale = Math.min(1, container.clientWidth / baseWidth);
-      const scale = widthScale * aspectScale;
+      const viewportWidth = container.clientWidth;
+      const viewportHeight = container.clientHeight;
+      const isPortrait = viewportHeight > viewportWidth;
+      
+      // Determine fill ratio based on orientation and width
+      let targetFillRatio: number;
+      
+      if (isPortrait) {
+        // Portrait mode: calculate based on width
+        if (viewportWidth < 600) {
+          // Portrait phones: fill more of the width
+          targetFillRatio = 0.95;
+        } else {
+          // Portrait tablets: use smaller fill to prevent oversizing
+          targetFillRatio = 0.65;
+        }
+      } else {
+        // Landscape mode
+        targetFillRatio = 0.90;
+      }
+      
+      // Calculate scale based on viewport width and fill ratio
+      const targetWidth = viewportWidth * targetFillRatio;
+      const scale = targetWidth / baseWidth;
+      
       textGroup.scale.setScalar(scale);
     }
 
@@ -283,21 +309,27 @@ export default function AnimatedText({ text = 'OPENRISE', className }: AnimatedT
       // Apply initial scale
       updateScale();
 
-      // GSAP timeline
+      // GSAP scroll-driven timeline
+      // Find the Hero section (parent) to use as scroll trigger
+      const heroSection = container.closest('section');
+      
       tl = gsap.timeline({
-        repeat: -1,
-        repeatDelay: 0.5,
-        yoyo: true
+        scrollTrigger: {
+          trigger: heroSection || container,
+          start: 'top top',
+          end: 'bottom top',
+          scrub: 1, // Smooth scrubbing, 1 second lag
+          // markers: true,
+        }
       });
 
-      // Animate all meshes together
+      // Animate all meshes together based on scroll
       textMeshes.forEach((mesh) => {
         tl!.fromTo(mesh, {
           animationProgress: 0.0
         }, {
           animationProgress: 0.6,
-          duration: 4,
-          ease: 'power1.inOut'
+          ease: 'none' // Linear for scroll-driven
         }, 0);
       });
 
@@ -305,8 +337,7 @@ export default function AnimatedText({ text = 'OPENRISE', className }: AnimatedT
         y: 0
       }, {
         y: Math.PI * 2,
-        duration: 4,
-        ease: 'power1.inOut'
+        ease: 'none' // Linear for scroll-driven
       }, 0);
     }, undefined, (error) => {
       console.error('Error loading font:', error);
@@ -334,7 +365,13 @@ export default function AnimatedText({ text = 'OPENRISE', className }: AnimatedT
       cancelAnimationFrame(animationId);
       window.removeEventListener('resize', handleResize);
       
-      if (tl) tl.kill();
+      if (tl) {
+        tl.kill();
+        // Kill associated ScrollTrigger
+        if (tl.scrollTrigger) {
+          tl.scrollTrigger.kill();
+        }
+      }
       
       textMeshes.forEach((mesh) => {
         mesh.geometry.dispose();
