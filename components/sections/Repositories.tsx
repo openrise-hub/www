@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Image from 'next/image';
 
 interface Repository {
   id: number;
@@ -47,15 +48,34 @@ export default function Repositories() {
                 href={repo.html_url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="group border border-slate/20 p-6 hover:border-lemon transition-colors cursor-target"
+                className="group border border-slate/20 hover:border-lemon transition-colors cursor-target flex flex-col h-80 overflow-hidden bg-background"
               >
-                <h3 className="text-xl font-semibold mb-2 group-hover:text-lemon transition-colors">
-                  {repo.name}
-                </h3>
-                <p className="text-slate text-sm mb-4">{repo.description || 'No description'}</p>
-                <div className="flex gap-4 text-xs text-slate/60">
-                  {repo.language && <span>{repo.language}</span>}
-                  <span>{repo.stargazers_count} stars</span>
+                {/* Image Section - 65% */}
+                <div className="h-[65%] w-full relative bg-slate/5 p-8 flex items-center justify-center border-b border-slate/10">
+                  <div className="relative w-full h-full p-4">
+                    <Image 
+                      src="/infinite.svg" 
+                      alt="Project Preview" 
+                      fill
+                      className="object-contain opacity-50 group-hover:opacity-80 transition-opacity duration-300"
+                    />
+                  </div>
+                </div>
+
+                {/* Content Section - 35% */}
+                <div className="h-[35%] p-6 flex flex-col justify-between">
+                  <div>
+                    <h3 className="text-xl font-semibold mb-2 group-hover:text-lemon transition-colors line-clamp-1">
+                      {repo.name}
+                    </h3>
+                    <p className="text-slate text-sm line-clamp-3">{repo.description || 'No description'}</p>
+                  </div>
+                  
+                  {repo.language && (
+                    <div className="text-xs text-slate/60 mt-4">
+                      <span>{repo.language}</span>
+                    </div>
+                  )}
                 </div>
               </a>
             ))}
