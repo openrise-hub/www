@@ -17,7 +17,7 @@ export default function Contact() {
           <div className="flex flex-col gap-4">
             <a 
               href="mailto:team@openrise.tech"
-              className="flex items-center gap-3 text-slate hover:text-lemon transition-colors w-fit"
+              className="flex items-center gap-3 text-slate hover:text-lemon transition-colors cursor-target w-fit"
             >
               <MailIcon className="w-5 h-5" />
               <span>team@openrise.tech</span>
@@ -29,7 +29,7 @@ export default function Contact() {
               className="flex items-center gap-3 text-slate hover:text-lemon transition-colors cursor-target w-fit"
             >
               <GithubIcon className="w-5 h-5" />
-              <span>github.com/openrise-hub</span>
+              <span>Follow us on Github</span>
             </a>
             <a 
               href={siteConfig.links.linkedin}
@@ -38,7 +38,7 @@ export default function Contact() {
               className="flex items-center gap-3 text-slate hover:text-lemon transition-colors cursor-target w-fit"
             >
               <LinkedinIcon className="w-5 h-5" />
-              <span>linkedin.com/company/openrise-dev</span>
+              <span>Follow us on LinkedIn</span>
             </a>
           </div>
         </div>
