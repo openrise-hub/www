@@ -3,9 +3,9 @@ import { siteConfig } from "@/lib";
 
 export default function Community() {
   return (
-    <section id="community" className="py-20 px-6 border-t border-slate/20">
+    <section id="community" className="py-24 px-6">
       <article className="max-w-6xl mx-auto">
-        <h2 className="text-base uppercase tracking-[0.25em] text-slate mb-8 font-semibold font-heading">
+        <h2 className="text-base uppercase tracking-[0.25em] text-slate mb-12 font-semibold font-heading">
           Community
         </h2>
         

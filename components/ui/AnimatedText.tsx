@@ -332,13 +332,6 @@ export default function AnimatedText({ text = 'OPENRISE', className }: AnimatedT
           ease: 'none' // Linear for scroll-driven
         }, 0);
       });
-
-      tl.fromTo(textGroup.rotation, {
-        y: 0
-      }, {
-        y: Math.PI * 2,
-        ease: 'none' // Linear for scroll-driven
-      }, 0);
     }, undefined, (error) => {
       console.error('Error loading font:', error);
     });
