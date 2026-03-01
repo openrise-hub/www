@@ -53,7 +53,7 @@ export default function ScrollIndicator({ className }: ScrollIndicatorProps) {
     <button 
       onClick={handleClick}
       className={`
-        fixed bottom-6 left-1/2 -translate-x-1/2 z-50
+        fixed bottom-6 left-1/2 -translate-x-1/2 z-10
         flex flex-col items-center gap-2 
         transition-opacity duration-300 ease-out
         cursor-pointer hover:opacity-100
