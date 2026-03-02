@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import { siteConfig } from "@/lib";
 import TargetCursor from '../components/ui/targetCursor';
 import Header from '../components/layout/Header';
+import GlobalCanvas from '../components/ui/GlobalCanvas';
 import "./globals.css";
 
 const inter = Inter({
@@ -49,7 +50,9 @@ export default function RootLayout({
           hoverDuration={0.3}
         />
         <Header />
-        {children}
+        <GlobalCanvas>
+          {children}
+        </GlobalCanvas>
       </body>
     </html>
   );

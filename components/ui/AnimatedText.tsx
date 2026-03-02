@@ -1,14 +1,16 @@
 'use client';
 
-import { useRef, useEffect } from 'react';
+import { useRef, useEffect, useMemo, useState } from 'react';
+import { useThree } from '@react-three/fiber';
+import { View, PerspectiveCamera } from '@react-three/drei';
 import * as THREE from 'three';
 import * as BAS from 'three-bas';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { FontLoader } from 'three/examples/jsm/loaders/FontLoader.js';
 import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry.js';
+import type { Font } from 'three/examples/jsm/loaders/FontLoader.js';
 
-// Register ScrollTrigger plugin
 gsap.registerPlugin(ScrollTrigger);
 
 interface AnimatedTextProps {
@@ -43,8 +45,36 @@ function computeCentroid(positions: Float32Array, i0: number, i1: number, i2: nu
   );
 }
 
-// Create animated text mesh
-function createAnimatedTextMesh(geometry: THREE.BufferGeometry): THREE.Mesh {
+// Interface for BAS Material Parameters
+interface BASMaterialParams extends THREE.ShaderMaterialParameters {
+  flatShading?: boolean;
+  vertexFunctions?: string[];
+  vertexParameters?: string[];
+  vertexInit?: string[];
+  vertexPosition?: string[];
+  vertexNormal?: string[];
+  diffuse?: THREE.Color;
+  specular?: THREE.Color;
+  shininess?: number;
+}
+
+// Interface for the resulting material
+interface BASMaterial extends THREE.ShaderMaterial {
+  uniforms: {
+    uTime: THREE.IUniform<number>;
+    [key: string]: THREE.IUniform<unknown>;
+  };
+}
+
+// Interface for the animated mesh
+interface AnimatedMesh extends THREE.Mesh<THREE.BufferGeometry, BASMaterial> {
+  animationDuration: number;
+  _animationProgress: number;
+  animationProgress: number;
+}
+
+// Create animated text mesh using BAS
+function createAnimatedTextMesh(geometry: THREE.BufferGeometry): AnimatedMesh {
   geometry.computeBoundingBox();
   const maxLength = geometry.boundingBox!.max.length();
   
@@ -53,7 +83,6 @@ function createAnimatedTextMesh(geometry: THREE.BufferGeometry): THREE.Mesh {
   const positions = positionAttr.array as Float32Array;
   const vertexCount = positionAttr.count;
   
-  // Determine face count - if no index, every 3 vertices is a face
   let faceCount: number;
   let getVertexIndices: (faceIdx: number) => [number, number, number];
   
@@ -66,7 +95,6 @@ function createAnimatedTextMesh(geometry: THREE.BufferGeometry): THREE.Mesh {
       indices[faceIdx * 3 + 2]
     ];
   } else {
-    // Non-indexed geometry: every 3 vertices is a triangle
     faceCount = vertexCount / 3;
     getVertexIndices = (faceIdx: number) => [
       faceIdx * 3,
@@ -75,49 +103,42 @@ function createAnimatedTextMesh(geometry: THREE.BufferGeometry): THREE.Mesh {
     ];
   }
   
-  // Animation parameters
   const maxDelay = 0.0;
   const minDuration = 1.0;
   const maxDuration = 1.0;
   const stretch = 0.05;
-  const lengthFactor = 0.001;
+  const lengthFactor = 0.001; 
   const animationDuration = maxDuration + maxDelay + stretch + lengthFactor * maxLength;
   
-  // Create buffer attributes for each vertex
   const aAnimation = new Float32Array(vertexCount * 2);
   const aEndPosition = new Float32Array(vertexCount * 3);
   const aAxisAngle = new Float32Array(vertexCount * 4);
   
-  // Process each face
   for (let faceIdx = 0; faceIdx < faceCount; faceIdx++) {
     const [i0, i1, i2] = getVertexIndices(faceIdx);
     
     const centroid = computeCentroid(positions, i0, i1, i2);
     const centroidN = centroid.clone().normalize();
     
-    // Animation timing
     const delay = (maxLength - centroid.length()) * lengthFactor;
     const duration = THREE.MathUtils.randFloat(minDuration, maxDuration);
     
-    // End position - fibonacci sphere distribution
     const point = fibSpherePoint(faceIdx, faceCount, 200);
     
-    // Axis angle for rotation
-    const axis = new THREE.Vector3(centroidN.x, -centroidN.y, -centroidN.z).normalize();
+    let axis = new THREE.Vector3(centroidN.x, -centroidN.y, -centroidN.z);
+    if (axis.lengthSq() < 0.0001) axis.set(0, 1, 0);
+    axis = axis.normalize();
+    
     const angle = Math.PI * THREE.MathUtils.randFloat(0.5, 2.0);
     
-    // Apply to all 3 vertices of this face
     for (const vertIdx of [i0, i1, i2]) {
-      // Animation (delay, duration)
       aAnimation[vertIdx * 2] = delay + stretch * Math.random();
       aAnimation[vertIdx * 2 + 1] = duration;
       
-      // End position
       aEndPosition[vertIdx * 3] = point.x;
       aEndPosition[vertIdx * 3 + 1] = point.y;
       aEndPosition[vertIdx * 3 + 2] = point.z;
       
-      // Axis angle
       aAxisAngle[vertIdx * 4] = axis.x;
       aAxisAngle[vertIdx * 4 + 1] = axis.y;
       aAxisAngle[vertIdx * 4 + 2] = axis.z;
@@ -125,16 +146,14 @@ function createAnimatedTextMesh(geometry: THREE.BufferGeometry): THREE.Mesh {
     }
   }
   
-  // Add attributes to geometry
   geometry.setAttribute('aAnimation', new THREE.BufferAttribute(aAnimation, 2));
   geometry.setAttribute('aEndPosition', new THREE.BufferAttribute(aEndPosition, 3));
   geometry.setAttribute('aAxisAngle', new THREE.BufferAttribute(aAxisAngle, 4));
   
-  // Create material with custom shaders
-  const material = new BAS.PhongAnimationMaterial({
+  const materialProps: BASMaterialParams = {
     flatShading: true,
     side: THREE.DoubleSide,
-    transparent: true,
+    transparent: false, 
     uniforms: {
       uTime: { value: 0 }
     },
@@ -153,232 +172,167 @@ function createAnimatedTextMesh(geometry: THREE.BufferGeometry): THREE.Mesh {
       'float tDelay = aAnimation.x;',
       'float tDuration = aAnimation.y;',
       'float tTime = clamp(uTime - tDelay, 0.0, tDuration);',
-      'float tProgress = easeCubicOut(tTime, 0.0, 1.0, tDuration);'
+      'float tProgress = easeCubicOut(tTime, 0.0, 1.0, tDuration);',
+      'float angle = aAxisAngle.w * tProgress;',
+      'vec4 tQuat = quatFromAxisAngle(aAxisAngle.xyz, angle);'
     ],
     vertexPosition: [
       'transformed = mix(transformed, aEndPosition, tProgress);',
-      'float angle = aAxisAngle.w * tProgress;',
-      'vec4 tQuat = quatFromAxisAngle(aAxisAngle.xyz, angle);',
       'transformed = rotateVector(tQuat, transformed);'
     ],
-    color: new THREE.Color(0xfcf7f8),
-    specular: new THREE.Color(0xcccccc),
-    shininess: 4
-  });
+    vertexNormal: [
+      'objectNormal = rotateVector(tQuat, objectNormal);' 
+    ],
+    diffuse: new THREE.Color(0x6e8898),
+    specular: new THREE.Color(0x111111),
+    shininess: 10 
+  };
 
-  const mesh = new THREE.Mesh(geometry, material);
+  const material = new BAS.PhongAnimationMaterial(materialProps as unknown as THREE.ShaderMaterialParameters) as BASMaterial;
+
+  const mesh = new THREE.Mesh(geometry, material) as unknown as AnimatedMesh;
   mesh.frustumCulled = false;
   
-  // Add animationDuration and animationProgress properties
-  const meshWithAnimation = mesh as unknown as THREE.Mesh & { 
-    animationDuration: number; 
-    _animationProgress: number;
-    animationProgress: number;
-  };
-  meshWithAnimation.animationDuration = animationDuration;
-  meshWithAnimation._animationProgress = 0;
+  mesh.animationDuration = animationDuration;
+  mesh._animationProgress = 0;
   
-  Object.defineProperty(meshWithAnimation, 'animationProgress', {
-    get() {
+  Object.defineProperty(mesh, 'animationProgress', {
+    get(this: AnimatedMesh) {
       return this._animationProgress;
     },
-    set(v: number) {
+    set(this: AnimatedMesh, v: number) {
       this._animationProgress = v;
-      (this.material as THREE.ShaderMaterial & { uniforms: { uTime: { value: number } } }).uniforms.uTime.value = this.animationDuration * v;
+      this.material.uniforms.uTime.value = this.animationDuration * v;
     }
   });
   
-  return meshWithAnimation;
+  return mesh;
 }
 
-export default function AnimatedText({ text = 'OPENRISE', className }: AnimatedTextProps) {
-  const containerRef = useRef<HTMLDivElement>(null);
+function AnimatedTextScene({ text }: { text: string | string[] }) {
+  const groupRef = useRef<THREE.Group>(null);
+  const meshesRef = useRef<AnimatedMesh[]>([]);
+  const tlRef = useRef<gsap.core.Timeline | null>(null);
+  const { size } = useThree();
+  const [font, setFont] = useState<Font | null>(null);
 
   useEffect(() => {
-    if (!containerRef.current) return;
+    const loader = new FontLoader();
+    loader.load('/fonts/helvetiker_bold.typeface.json', (f) => setFont(f));
+  }, []);
 
-    const container = containerRef.current;
-    
-    // Convert text to array of lines
+  useEffect(() => {
+    if (!font || !groupRef.current) return;
+
     const lines = Array.isArray(text) ? text : [text];
+    const fontSize = 40; 
+    const lineHeight = fontSize * 1.3;
+    const totalHeight = lines.length * lineHeight;
+    const textMeshes: AnimatedMesh[] = [];
 
-    // Scene setup
-    const scene = new THREE.Scene();
-    
-    const camera = new THREE.PerspectiveCamera(
-      60,
-      container.clientWidth / container.clientHeight,
-      10,
-      100000
-    );
-    camera.position.set(0, 0, 600);
-
-    const renderer = new THREE.WebGLRenderer({
-      antialias: window.devicePixelRatio === 1,
-      alpha: true
-    });
-    renderer.setPixelRatio(Math.min(2, window.devicePixelRatio || 1));
-    renderer.setSize(container.clientWidth, container.clientHeight);
-    renderer.setClearColor(0x000000, 0);
-    container.appendChild(renderer.domElement);
-
-    // Light
-    const light = new THREE.DirectionalLight(0xffffff, 1);
-    light.position.set(0, 0, 1);
-    scene.add(light);
-    
-    const ambientLight = new THREE.AmbientLight(0x404040, 0.5);
-    scene.add(ambientLight);
-
-    // Animation references
-    let tl: gsap.core.Timeline | null = null;
-    const textMeshes: THREE.Mesh[] = [];
-    let animationId: number;
-    
-    // Group to hold all lines
-    const textGroup = new THREE.Group();
-    scene.add(textGroup);
-    
-    // Responsive scaling - text should fill viewport width appropriately
-    // Base width represents the "designed for" width where scale = 1
-    const baseWidth = 1200;
-    
-    function updateScale() {
-      const viewportWidth = container.clientWidth;
-      const viewportHeight = container.clientHeight;
-      const isPortrait = viewportHeight > viewportWidth;
-      
-      // Determine fill ratio based on orientation and width
-      let targetFillRatio: number;
-      
-      if (isPortrait) {
-        // Portrait mode: calculate based on width
-        if (viewportWidth < 600) {
-          // Portrait phones: fill more of the width
-          targetFillRatio = 0.95;
-        } else {
-          // Portrait tablets: use smaller fill to prevent oversizing
-          targetFillRatio = 0.65;
-        }
-      } else {
-        // Landscape mode
-        targetFillRatio = 0.90;
+    while (groupRef.current.children.length > 0) {
+      const child = groupRef.current.children[0];
+      groupRef.current.remove(child);
+      if (child instanceof THREE.Mesh) {
+        child.geometry.dispose();
+        (child.material as THREE.Material).dispose();
       }
-      
-      // Calculate scale based on viewport width and fill ratio
-      const targetWidth = viewportWidth * targetFillRatio;
-      const scale = targetWidth / baseWidth;
-      
-      textGroup.scale.setScalar(scale);
     }
 
-    // Load font and create text
-    const fontLoader = new FontLoader();
-    fontLoader.load('/fonts/helvetiker_bold.typeface.json', (font) => {
-      const fontSize = 40;
-      const lineHeight = fontSize * 1.3;
-      const totalHeight = lines.length * lineHeight;
-      
-      lines.forEach((lineText, lineIndex) => {
-        const geometry = new TextGeometry(lineText, {
-          font,
-          size: fontSize,
-          depth: 12,
-          curveSegments: 24,
-          bevelEnabled: true,
-          bevelSize: 2,
-          bevelThickness: 2
-        });
-        
-        // Center the geometry horizontally
-        geometry.computeBoundingBox();
-        const size = new THREE.Vector3();
-        geometry.boundingBox!.getSize(size);
-        geometry.translate(-size.x / 2, 0, -size.z / 2);
-
-        const mesh = createAnimatedTextMesh(geometry);
-        
-        // Position vertically - center all lines as a group
-        const yOffset = (totalHeight / 2) - (lineIndex * lineHeight) - (lineHeight / 2);
-        mesh.position.y = yOffset;
-        
-        textMeshes.push(mesh);
-        textGroup.add(mesh);
-      });
-      
-      // Apply initial scale
-      updateScale();
-
-      // GSAP scroll-driven timeline
-      // Find the Hero section (parent) to use as scroll trigger
-      const heroSection = container.closest('section');
-      
-      tl = gsap.timeline({
-        scrollTrigger: {
-          trigger: heroSection || container,
-          start: 'top top',
-          end: 'bottom top',
-          scrub: 1, // Smooth scrubbing, 1 second lag
-          // markers: true,
-        }
+    lines.forEach((lineText, lineIndex) => {
+      const geometry = new TextGeometry(lineText, {
+        font,
+        size: fontSize,
+        depth: 12,
+        curveSegments: 24,
+        bevelEnabled: true,
+        bevelSize: 2,
+        bevelThickness: 2
       });
 
-      // Animate all meshes together based on scroll
-      textMeshes.forEach((mesh) => {
-        tl!.fromTo(mesh, {
-          animationProgress: 0.0
-        }, {
-          animationProgress: 0.6,
-          ease: 'none' // Linear for scroll-driven
-        }, 0);
-      });
-    }, undefined, (error) => {
-      console.error('Error loading font:', error);
+      geometry.computeBoundingBox();
+      const geoSize = new THREE.Vector3();
+      geometry.boundingBox!.getSize(geoSize);
+      geometry.translate(-geoSize.x / 2, 0, -geoSize.z / 2);
+
+      const mesh = createAnimatedTextMesh(geometry);
+      const yOffset = (totalHeight / 2) - (lineIndex * lineHeight) - (lineHeight / 2);
+      mesh.position.y = yOffset;
+
+      textMeshes.push(mesh);
+      groupRef.current!.add(mesh);
     });
 
-    // Render loop
-    function animate() {
-      animationId = requestAnimationFrame(animate);
-      renderer.render(scene, camera);
-    }
-    animate();
+    meshesRef.current = textMeshes;
 
-    // Resize handler
-    function handleResize() {
-      if (!container) return;
-      camera.aspect = container.clientWidth / container.clientHeight;
-      camera.updateProjectionMatrix();
-      renderer.setSize(container.clientWidth, container.clientHeight);
-      updateScale();
-    }
-    window.addEventListener('resize', handleResize);
-
-    // Cleanup
     return () => {
-      cancelAnimationFrame(animationId);
-      window.removeEventListener('resize', handleResize);
-      
-      if (tl) {
-        tl.kill();
-        // Kill associated ScrollTrigger
-        if (tl.scrollTrigger) {
-          tl.scrollTrigger.kill();
-        }
-      }
-      
       textMeshes.forEach((mesh) => {
         mesh.geometry.dispose();
         (mesh.material as THREE.Material).dispose();
       });
-      
-      scene.remove(textGroup);
-      
-      renderer.dispose();
-      if (container.contains(renderer.domElement)) {
-        container.removeChild(renderer.domElement);
+    };
+  }, [font, text]);
+
+  useEffect(() => {
+    if (meshesRef.current.length === 0) return;
+    const heroSection = document.querySelector('#animated-text-trigger');
+    const tl = gsap.timeline({
+      scrollTrigger: {
+        trigger: heroSection || document.body,
+        start: 'top top',
+        end: 'bottom top',
+        scrub: 1,
+      }
+    });
+
+    meshesRef.current.forEach((mesh) => {
+      tl.fromTo(mesh, {
+        animationProgress: 0.0
+      }, {
+        animationProgress: 0.6,
+        ease: 'none'
+      }, 0);
+    });
+
+    tlRef.current = tl;
+
+    return () => {
+      if (tlRef.current) {
+        if (tlRef.current.scrollTrigger) tlRef.current.scrollTrigger.kill();
+        tlRef.current.kill();
       }
     };
-  }, [text]);
+  }, [font]);
 
-  return <div ref={containerRef} className={`w-full h-full ${className || ''}`} />;
+  useEffect(() => {
+    if (!groupRef.current) return;
+    const baseWidth = 1200; 
+    const viewportWidth = size.width;
+    const viewportHeight = size.height;
+    const targetFillRatio = viewportHeight > viewportWidth ? (viewportWidth < 600 ? 0.95 : 0.65) : 0.90;
+    const targetWidth = viewportWidth * targetFillRatio;
+    const scale = targetWidth / baseWidth;
+    groupRef.current.scale.setScalar(scale);
+  }, [size]);
+
+  return (
+    <>
+      <ambientLight intensity={1.5} />
+      <pointLight position={[300, 300, 600]} intensity={30} color="#ffffff" />
+      <pointLight position={[-300, -300, 600]} intensity={25} color="#ffffff" />
+      <directionalLight position={[0, 0, 600]} intensity={2} />
+      <group ref={groupRef} />
+    </>
+  );
+}
+
+export default function AnimatedText({ text = 'OPENRISE', className }: AnimatedTextProps) {
+  return (
+    <div id="animated-text-trigger" className={`w-full h-full ${className || ''}`}>
+      <View className="w-full h-full">
+        <PerspectiveCamera makeDefault position={[0, 0, 600]} fov={60} near={10} far={100000} />
+        <AnimatedTextScene text={text} />
+      </View>
+    </div>
+  );
 }

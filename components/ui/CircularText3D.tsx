@@ -1,8 +1,8 @@
 'use client';
 
 import { useRef, useMemo, useState, useEffect } from 'react';
-import { Canvas, useFrame } from '@react-three/fiber';
-import { Float } from '@react-three/drei';
+import { useFrame } from '@react-three/fiber';
+import { Float, View, PerspectiveCamera } from '@react-three/drei';
 import * as THREE from 'three';
 import { Font, FontLoader } from 'three/examples/jsm/loaders/FontLoader.js';
 import { TextGeometry } from 'three/examples/jsm/geometries/TextGeometry.js';
@@ -141,14 +141,15 @@ export default function CircularText3D({ layers = 3 }: { layers?: number }) {
 
   return (
     <div className="w-full h-[400px] md:h-[600px] relative pointer-events-none">
-      <Canvas camera={{ position: [0, 0, 10], fov: 45 }}>
+      <View className="w-full h-full">
+        <PerspectiveCamera makeDefault position={[0, 0, 10]} fov={45} />
         <ambientLight intensity={1.2} />
         <pointLight position={[5, 5, 10]} intensity={30} color="#ffffff" />
         <pointLight position={[-5, -5, 10]} intensity={25} color="#ffffff" />
         <directionalLight position={[0, 0, 10]} intensity={2} />
         
         <CircularTextScene font={font} layers={layers} />
-      </Canvas>
+      </View>
     </div>
   );
 }
