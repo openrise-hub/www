@@ -1,7 +1,7 @@
 'use client';
 
-import { Canvas, useFrame, useThree } from '@react-three/fiber';
-import { useGLTF, Float, Stage, Center } from '@react-three/drei';
+import { useFrame } from '@react-three/fiber';
+import { useGLTF, Float, Stage, Center, View, PerspectiveCamera } from '@react-three/drei';
 import { Suspense, useRef, useEffect, useState } from 'react';
 import * as THREE from 'three';
 
@@ -12,7 +12,6 @@ function Model() {
 
 function Scene() {
   const rotationRef = useRef<THREE.Group>(null);
-  const { size } = useThree();
   const [mouse, setMouse] = useState({ x: 0, y: 0 });
 
   const baseRotationX = 0.15;
@@ -57,11 +56,12 @@ function Scene() {
 export default function Logo3D() {
   return (
     <div className="w-full aspect-square max-w-xs md:max-w-sm lg:max-w-lg">
-      <Canvas camera={{ position: [0, 0, 5], fov: 35 }}>
+      <View className="w-full h-full">
+        <PerspectiveCamera makeDefault position={[0, 0, 5]} fov={35} />
         <Suspense fallback={null}>
           <Scene />
         </Suspense>
-      </Canvas>
+      </View>
     </div>
   );
 }
