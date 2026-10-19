@@ -85,7 +85,6 @@ export default function Repositories() {
           </div>
         ) : (
           <div className="relative">
-            {/* The Container */}
             <div 
               onMouseEnter={handleMouseEnter}
               onMouseLeave={handleMouseLeave}
@@ -96,7 +95,6 @@ export default function Repositories() {
                 isDragging ? "cursor-grabbing" : "cursor-grab"
               )}
             >
-              {/* Draggable Area */}
               <div 
                 ref={scrollRef}
                 onMouseDown={handleMouseDown}
@@ -134,7 +132,7 @@ function ProjectSlide({ repo, isHovered }: { repo: Repository, isHovered: boolea
     
     if (isHovered) {
       gsap.to(q(".negative-text"), { 
-        opacity: 1, 
+        autoAlpha: 1, 
         y: 0, 
         duration: 0.6, 
         stagger: 0.1, 
@@ -143,7 +141,7 @@ function ProjectSlide({ repo, isHovered }: { repo: Repository, isHovered: boolea
       });
     } else {
       gsap.to(q(".negative-text"), { 
-        opacity: 0, 
+        autoAlpha: 0, 
         y: 20, 
         duration: 0.4, 
         stagger: 0.05, 
@@ -155,7 +153,6 @@ function ProjectSlide({ repo, isHovered }: { repo: Repository, isHovered: boolea
 
   return (
     <div className="w-full h-full relative">
-      {/* Multimedia */}
       <div className="absolute inset-0 w-full h-full">
         <div className="relative w-full h-full flex items-center justify-center p-24 bg-slate/[0.02]">
           <Image 
@@ -168,7 +165,6 @@ function ProjectSlide({ repo, isHovered }: { repo: Repository, isHovered: boolea
         </div>
       </div>
 
-      {/* Negative Text Overlay */}
       <div 
         ref={overlayRef}
         className="absolute inset-0 z-20 flex items-center justify-center pointer-events-none"
@@ -187,7 +183,9 @@ function ProjectSlide({ repo, isHovered }: { repo: Repository, isHovered: boolea
             href={repo.html_url}
             target="_blank"
             rel="noopener noreferrer"
-            className="cursor-target inline-flex items-center gap-6 text-xs font-bold uppercase tracking-[0.5em] hover:opacity-70 transition-opacity pointer-events-auto negative-text"
+            className={`cursor-target inline-flex items-center gap-6 text-xs font-bold uppercase tracking-[0.5em] hover:opacity-70 transition-opacity negative-text ${
+              isHovered ? 'pointer-events-auto' : 'pointer-events-none'
+            }`}
             onMouseDown={(e) => e.stopPropagation()} 
           >
             <span className="relative">

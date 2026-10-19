@@ -28,19 +28,13 @@ const TargetCursor: React.FC<TargetCursorProps> = ({
   const tickerFnRef = useRef<(() => void) | null>(null);
   const activeStrengthRef = useRef({ current: 0 });
 
-  // Detect touch-only devices - cursor should only show for mouse users
   const isTouchDevice = useMemo(() => {
     if (typeof window === 'undefined' || typeof navigator === 'undefined') return false;
     
-    // Check if device has touch capabilities
     const hasTouchScreen = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
-    
-    // Check if device primarily uses touch (no precise pointing device)
     const hasCoarsePointer = window.matchMedia('(pointer: coarse)').matches;
     const hasFinePointer = window.matchMedia('(pointer: fine)').matches;
     
-    // If device has touch AND no fine pointer (mouse), it's touch-only
-    // Devices with both (laptops with touch) will have fine pointer and should show cursor
     return hasTouchScreen && hasCoarsePointer && !hasFinePointer;
   }, []);
 
@@ -166,6 +160,20 @@ const TargetCursor: React.FC<TargetCursorProps> = ({
       }
       const target = allTargets[0] || null;
       if (!target || !cursorRef.current || !cornersRef.current) return;
+
+      const computed = window.getComputedStyle(target);
+      if (
+        computed.display === 'none' ||
+        computed.visibility === 'hidden' ||
+        computed.opacity === '0' ||
+        computed.pointerEvents === 'none'
+      ) {
+        return;
+      }
+      if ('checkVisibility' in target && !target.checkVisibility({ checkOpacity: true, checkVisibilityCSS: true })) {
+        return;
+      }
+
       if (activeTarget === target) return;
       if (activeTarget) {
         cleanupTarget(activeTarget);

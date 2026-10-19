@@ -14,19 +14,16 @@ export default function ScrollIndicator({ className }: ScrollIndicatorProps) {
   useEffect(() => {
     const handleScroll = () => {
       if (window.scrollY > 50) {
-        // User has scrolled - start 100ms delay before fading
         if (!isFading && isVisible) {
           if (timeoutRef.current) clearTimeout(timeoutRef.current);
           timeoutRef.current = setTimeout(() => {
             setIsFading(true);
-            // After 300ms fade, hide completely
             setTimeout(() => {
               setIsVisible(false);
             }, 300);
           }, 100);
         }
       } else {
-        // User scrolled back to top - reset
         if (timeoutRef.current) clearTimeout(timeoutRef.current);
         setIsFading(false);
         setIsVisible(true);
