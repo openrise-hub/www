@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useEffect, useMemo, useState } from 'react';
+import { useRef, useEffect, useState } from 'react';
 import { useThree } from '@react-three/fiber';
 import { View, PerspectiveCamera } from '@react-three/drei';
 import * as THREE from 'three';
@@ -16,9 +16,9 @@ gsap.registerPlugin(ScrollTrigger);
 interface AnimatedTextProps {
   text?: string | string[];
   className?: string;
+  progress?: number;
 }
 
-// Fibonacci sphere point distribution
 function fibSpherePoint(i: number, n: number, radius: number) {
   const G = Math.PI * (3 - Math.sqrt(5));
   const step = 2.0 / n;
@@ -36,7 +36,6 @@ function fibSpherePoint(i: number, n: number, radius: number) {
   };
 }
 
-// Compute centroid of a triangle from positions
 function computeCentroid(positions: Float32Array, i0: number, i1: number, i2: number): THREE.Vector3 {
   return new THREE.Vector3(
     (positions[i0 * 3] + positions[i1 * 3] + positions[i2 * 3]) / 3,
@@ -45,7 +44,6 @@ function computeCentroid(positions: Float32Array, i0: number, i1: number, i2: nu
   );
 }
 
-// Interface for BAS Material Parameters
 interface BASMaterialParams extends THREE.ShaderMaterialParameters {
   flatShading?: boolean;
   vertexFunctions?: string[];
@@ -58,7 +56,6 @@ interface BASMaterialParams extends THREE.ShaderMaterialParameters {
   shininess?: number;
 }
 
-// Interface for the resulting material
 interface BASMaterial extends THREE.ShaderMaterial {
   uniforms: {
     uTime: THREE.IUniform<number>;
@@ -66,14 +63,12 @@ interface BASMaterial extends THREE.ShaderMaterial {
   };
 }
 
-// Interface for the animated mesh
 interface AnimatedMesh extends THREE.Mesh<THREE.BufferGeometry, BASMaterial> {
   animationDuration: number;
   _animationProgress: number;
   animationProgress: number;
 }
 
-// Create animated text mesh using BAS
 function createAnimatedTextMesh(geometry: THREE.BufferGeometry): AnimatedMesh {
   geometry.computeBoundingBox();
   const maxLength = geometry.boundingBox!.max.length();
@@ -209,7 +204,7 @@ function createAnimatedTextMesh(geometry: THREE.BufferGeometry): AnimatedMesh {
   return mesh;
 }
 
-function AnimatedTextScene({ text }: { text: string | string[] }) {
+function AnimatedTextScene({ text, progress }: { text: string | string[]; progress?: number }) {
   const groupRef = useRef<THREE.Group>(null);
   const meshesRef = useRef<AnimatedMesh[]>([]);
   const tlRef = useRef<gsap.core.Timeline | null>(null);
@@ -274,6 +269,15 @@ function AnimatedTextScene({ text }: { text: string | string[] }) {
   }, [font, text]);
 
   useEffect(() => {
+    if (progress !== undefined && meshesRef.current.length > 0) {
+      meshesRef.current.forEach((mesh) => {
+        mesh.animationProgress = progress;
+      });
+    }
+  }, [progress]);
+
+  useEffect(() => {
+    if (progress !== undefined) return;
     if (meshesRef.current.length === 0) return;
     const heroSection = document.querySelector('#animated-text-trigger');
     const tl = gsap.timeline({
@@ -302,7 +306,7 @@ function AnimatedTextScene({ text }: { text: string | string[] }) {
         tlRef.current.kill();
       }
     };
-  }, [font]);
+  }, [font, progress]);
 
   useEffect(() => {
     if (!groupRef.current) return;
@@ -326,12 +330,12 @@ function AnimatedTextScene({ text }: { text: string | string[] }) {
   );
 }
 
-export default function AnimatedText({ text = 'OPENRISE', className }: AnimatedTextProps) {
+export default function AnimatedText({ text = 'OPENRISE', className, progress }: AnimatedTextProps) {
   return (
     <div id="animated-text-trigger" className={`w-full h-full ${className || ''}`}>
       <View className="w-full h-full">
         <PerspectiveCamera makeDefault position={[0, 0, 600]} fov={60} near={10} far={100000} />
-        <AnimatedTextScene text={text} />
+        <AnimatedTextScene text={text} progress={progress} />
       </View>
     </div>
   );

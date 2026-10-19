@@ -1,6 +1,3 @@
-/**
- * Site configuration and constants
- */
 export const siteConfig = {
   name: "Openrise",
   description: "We build software tools designed to solve real problems for the open-source community.",

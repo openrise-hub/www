@@ -61,9 +61,8 @@ function TextRing({ font, text, radius, fontSize, speed, index }: RingProps) {
       const char = fullText[i % fullText.length];
       const geo = charGeos[char];
       
-      // Alternate colors per repeat
       const repeatIndex = Math.floor(i / fullText.length);
-      const color = repeatIndex % 2 === 0 ? "#fcf7f8" : "#6e8898"; // Foreground / Slate
+      const color = repeatIndex % 2 === 0 ? "#fcf7f8" : "#6e8898";
 
       elements.push(
         <mesh 

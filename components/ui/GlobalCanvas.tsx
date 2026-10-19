@@ -4,15 +4,6 @@ import { Canvas } from '@react-three/fiber';
 import { Preload, View } from '@react-three/drei';
 import { ReactNode, useRef } from 'react';
 
-/**
- * GlobalCanvas provides a single shared WebGL context for the entire site.
- * 
- * Pattern:
- * - This component wraps the page content (children).
- * - A fixed <Canvas> sits behind everything with <View.Port />.
- * - Individual components place <View> inline in the DOM.
- * - View.Port picks them up and renders into the shared canvas.
- */
 export default function GlobalCanvas({ children }: { children: ReactNode }) {
   const containerRef = useRef<HTMLDivElement>(null);
 
