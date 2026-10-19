@@ -6,9 +6,9 @@ import { useState, useEffect } from "react";
 import { AnimatedMenuToggle } from "../ui";
 
 const navLinks = [
-  { label: "Home", href: "/" },
-  { label: "The Goal", href: "#thegoal" },
-  { label: "Our Projects", href: "#repositories" },
+  { label: "Core", href: "#start" },
+  { label: "Pillars", href: "#pillars" },
+  { label: "Projects", href: "#constellation" },
   { label: "Community", href: "#community" },
   { label: "Blog", href: "#blog" },
   { label: "Contact", href: "#contact" },
@@ -81,10 +81,9 @@ export default function Header() {
         </div>
       </header>
 
-      {/* Mobile Menu Overlay */}
       <div className={`
         fixed inset-0 z-50 bg-background flex flex-col items-center justify-center transition-all duration-300
-        ${isMenuOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none translate-y-4"}
+        ${isMenuOpen ? "opacity-100 pointer-events-auto visible" : "opacity-0 pointer-events-none translate-y-4 invisible hidden"}
       `}>
         <nav className="flex flex-col items-center gap-8">
           {navLinks.map((link) => (
