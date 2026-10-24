@@ -75,7 +75,7 @@ export default function ScrollytellingSingularity() {
       const hash = window.location.hash.replace('#', '');
       if (!hash) return;
       const idx = STAGES.findIndex(
-        (s) => s.id === hash || (hash === 'repositories' && s.id === 'constellation') || (hash === 'projects' && s.id === 'constellation')
+        (s) => s.id === hash || (hash === 'about' && s.id === 'pillars') || (hash === 'repositories' && s.id === 'constellation') || (hash === 'projects' && s.id === 'constellation')
       );
       if (idx !== -1) {
         scrollToStage(idx);

@@ -29,14 +29,20 @@ function intersectSegmentCircle(
   return results.sort((n1, n2) => n1 - n2);
 }
 
-export function createWordboxPath(
+export interface CardSliceResult {
+  pathA: string;
+  pathB: string;
+  sliceLine: string;
+}
+
+export function computeCardSlice(
   w: number,
   h: number,
   cx: number,
   cy: number,
   R: number,
   cornerRad = 14
-): string {
+): CardSliceResult {
   const fmt = (n: number) => n.toFixed(2);
   const isInside = (x: number, y: number) => (x - cx) ** 2 + (y - cy) ** 2 < R * R;
 
@@ -47,100 +53,138 @@ export function createWordboxPath(
     [0, h],
   ];
 
-  const intersections = corners.map((pt, i) => {
-    const [x1, y1] = pt;
+  type CrossPoint = { x: number; y: number; edgeIdx: number };
+  const allCrosses: CrossPoint[] = [];
+
+  for (let i = 0; i < 4; i++) {
+    const [x1, y1] = corners[i];
     const [x2, y2] = corners[(i + 1) % 4];
-    return intersectSegmentCircle(x1, y1, x2, y2, cx, cy, R).map((t) => ({
-      x: x1 + (x2 - x1) * t,
-      y: y1 + (y2 - y1) * t,
-    }));
-  });
-
-  const hasIntersections = intersections.some((arr) => arr.length > 0);
-
-  if (!hasIntersections) {
-    const cr = cornerRad;
-    return `M ${fmt(cr)} 0 L ${fmt(w - cr)} 0 Q ${fmt(w)} 0 ${fmt(w)} ${fmt(cr)} L ${fmt(w)} ${fmt(h - cr)} Q ${fmt(w)} ${fmt(h)} ${fmt(w - cr)} ${fmt(h)} L ${fmt(cr)} ${fmt(h)} Q 0 ${fmt(h)} 0 ${fmt(h - cr)} L 0 ${fmt(cr)} Q 0 0 ${fmt(cr)} 0 Z`;
+    const ts = intersectSegmentCircle(x1, y1, x2, y2, cx, cy, R);
+    for (const t of ts) {
+      allCrosses.push({
+        x: x1 + (x2 - x1) * t,
+        y: y1 + (y2 - y1) * t,
+        edgeIdx: i,
+      });
+    }
   }
 
-  type PathNode =
-    | { kind: "corner"; i: number; x: number; y: number; in: boolean }
-    | { kind: "cross"; x: number; y: number };
+  const cr = cornerRad;
+  const fullRect = `M ${fmt(cr)} 0 L ${fmt(w - cr)} 0 Q ${fmt(w)} 0 ${fmt(w)} ${fmt(cr)} L ${fmt(w)} ${fmt(h - cr)} Q ${fmt(w)} ${fmt(h)} ${fmt(w - cr)} ${fmt(h)} L ${fmt(cr)} ${fmt(h)} Q 0 ${fmt(h)} 0 ${fmt(h - cr)} L 0 ${fmt(cr)} Q 0 0 ${fmt(cr)} 0 Z`;
 
-  const nodes: PathNode[] = [];
+  if (allCrosses.length < 2) {
+    const centerInside = isInside(w / 2, h / 2);
+    return {
+      pathA: centerInside ? '' : fullRect,
+      pathB: centerInside ? fullRect : '',
+      sliceLine: '',
+    };
+  }
+
+  const p1 = allCrosses[0];
+  const p2 = allCrosses[1];
+
+  const crossProd = (p1.x - cx) * (p2.y - cy) - (p1.y - cy) * (p2.x - cx);
+  const sweepToP2 = crossProd < 0 ? 0 : 1;
+  const sliceLine = `M ${fmt(p1.x)} ${fmt(p1.y)} A ${fmt(R)} ${fmt(R)} 0 0 ${sweepToP2} ${fmt(p2.x)} ${fmt(p2.y)}`;
+
+  const cornerControls = [
+    { in: [0, cr], v: [0, 0], out: [cr, 0] },
+    { in: [w - cr, 0], v: [w, 0], out: [w, cr] },
+    { in: [w, h - cr], v: [w, h], out: [w - cr, h] },
+    { in: [cr, h], v: [0, h], out: [0, h - cr] },
+  ];
+
+  type Node =
+    | { kind: 'corner'; idx: number; x: number; y: number; in: boolean }
+    | { kind: 'cross'; crossIdx: number; x: number; y: number };
+
+  const nodes: Node[] = [];
   for (let i = 0; i < 4; i++) {
     nodes.push({
-      kind: "corner",
-      i,
+      kind: 'corner',
+      idx: i,
       x: corners[i][0],
       y: corners[i][1],
       in: isInside(corners[i][0], corners[i][1]),
     });
-    for (const cross of intersections[i]) {
-      nodes.push({ kind: "cross", x: cross.x, y: cross.y });
+    for (let cIdx = 0; cIdx < allCrosses.length; cIdx++) {
+      if (allCrosses[cIdx].edgeIdx === i) {
+        nodes.push({
+          kind: 'cross',
+          crossIdx: cIdx,
+          x: allCrosses[cIdx].x,
+          y: allCrosses[cIdx].y,
+        });
+      }
     }
   }
 
-  const cornerControls = [
-    { in: [0, cornerRad], v: [0, 0], out: [cornerRad, 0] },
-    { in: [w - cornerRad, 0], v: [w, 0], out: [w, cornerRad] },
-    { in: [w, h - cornerRad], v: [w, h], out: [w - cornerRad, h] },
-    { in: [cornerRad, h], v: [0, h], out: [0, h - cornerRad] },
-  ];
-
-  const total = nodes.length;
   const distToCut = (idx: number) => {
     let minD = Infinity;
-    const relatedCrosses = [...intersections[idx], ...intersections[(idx + 3) % 4]];
-    for (const cross of relatedCrosses) {
+    for (const cross of allCrosses) {
       minD = Math.min(minD, Math.hypot(cross.x - corners[idx][0], cross.y - corners[idx][1]));
     }
     return minD;
   };
 
-  const arcSegment = (x1: number, y1: number, x2: number, y2: number) => {
-    const crossProd = (x1 - cx) * (y2 - cy) - (y1 - cy) * (x2 - cx);
-    const sweep = crossProd < 0 ? 0 : 1;
-    return `A ${fmt(R)} ${fmt(R)} 0 0 ${sweep} ${fmt(x2)} ${fmt(y2)} `;
-  };
+  const buildSubpath = (targetInside: boolean) => {
+    const hasTarget = nodes.some((n) => n.kind === 'corner' && n.in === targetInside);
+    if (!hasTarget) return '';
 
-  let startIdx = nodes.findIndex((n) => n.kind === "corner" && !n.in);
-  if (startIdx < 0) startIdx = 0;
+    let startIdx = nodes.findIndex((n) => n.kind === 'corner' && n.in === targetInside);
+    if (startIdx < 0) startIdx = 0;
 
-  let pathStr = "";
-  let isPenDown = false;
-  let isNextCrossArc = true;
-  let lastCross: { x: number; y: number } | null = null;
+    let pathStr = '';
+    let penDown = false;
+    let lastCrossNode: { x: number; y: number } | null = null;
 
-  const emitPoint = (x: number, y: number) => {
-    pathStr += `${isPenDown ? "L" : "M"} ${fmt(x)} ${fmt(y)} `;
-    isPenDown = true;
-  };
+    const emitPoint = (x: number, y: number) => {
+      pathStr += `${penDown ? 'L' : 'M'} ${fmt(x)} ${fmt(y)} `;
+      penDown = true;
+    };
 
-  for (let k = 0; k < total; k++) {
-    const node = nodes[(startIdx + k) % total];
-    if (node.kind === "corner") {
-      if (node.in) continue;
-      if (distToCut(node.i) > cornerRad + 1) {
-        const ctrl = cornerControls[node.i];
-        emitPoint(ctrl.in[0], ctrl.in[1]);
-        pathStr += `Q ${fmt(ctrl.v[0])} ${fmt(ctrl.v[1])} ${fmt(ctrl.out[0])} ${fmt(ctrl.out[1])} `;
-      } else {
-        emitPoint(node.x, node.y);
-      }
-    } else {
-      if (isNextCrossArc) {
-        emitPoint(node.x, node.y);
-        lastCross = node;
-        isNextCrossArc = false;
-      } else {
-        if (lastCross) {
-          pathStr += arcSegment(lastCross.x, lastCross.y, node.x, node.y);
+    for (let k = 0; k < nodes.length; k++) {
+      const node = nodes[(startIdx + k) % nodes.length];
+      if (node.kind === 'corner') {
+        if (node.in !== targetInside) continue;
+        if (distToCut(node.idx) > cr + 1) {
+          const ctrl = cornerControls[node.idx];
+          emitPoint(ctrl.in[0], ctrl.in[1]);
+          pathStr += `Q ${fmt(ctrl.v[0])} ${fmt(ctrl.v[1])} ${fmt(ctrl.out[0])} ${fmt(ctrl.out[1])} `;
+        } else {
+          emitPoint(node.x, node.y);
         }
-        isNextCrossArc = true;
+      } else {
+        if (!lastCrossNode) {
+          emitPoint(node.x, node.y);
+          lastCrossNode = node;
+        } else {
+          const cp = (lastCrossNode.x - cx) * (node.y - cy) - (lastCrossNode.y - cy) * (node.x - cx);
+          const sweep = cp < 0 ? 0 : 1;
+          pathStr += `A ${fmt(R)} ${fmt(R)} 0 0 ${sweep} ${fmt(node.x)} ${fmt(node.y)} `;
+          lastCrossNode = null;
+        }
       }
     }
-  }
 
-  return pathStr + "Z";
+    return pathStr.trim() + ' Z';
+  };
+
+  const pathA = buildSubpath(false);
+  const pathB = buildSubpath(true);
+
+  return { pathA, pathB, sliceLine };
+}
+
+export function createWordboxPath(
+  w: number,
+  h: number,
+  cx: number,
+  cy: number,
+  R: number,
+  cornerRad = 14
+): string {
+  const { pathA } = computeCardSlice(w, h, cx, cy, R, cornerRad);
+  return pathA;
 }

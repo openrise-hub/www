@@ -6,8 +6,7 @@ import { useState, useEffect } from "react";
 import { AnimatedMenuToggle } from "../ui";
 
 const navLinks = [
-  { label: "Core", href: "#start" },
-  { label: "Pillars", href: "#pillars" },
+  { label: "About", href: "#about" },
   { label: "Projects", href: "#constellation" },
   { label: "Community", href: "#community" },
   { label: "Blog", href: "#blog" },

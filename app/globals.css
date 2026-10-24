@@ -514,26 +514,17 @@ select,
   padding: 18px 22px;
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
   justify-content: center;
-  text-align: left;
   gap: 0.35rem;
   box-sizing: border-box;
   width: clamp(230px, 20vw, 290px);
   min-height: 140px;
   z-index: 15;
-  border-radius: var(--glass-radius);
-  background: var(--glass-fill);
-  backdrop-filter: var(--glass-blur);
-  -webkit-backdrop-filter: var(--glass-blur);
-  border: 1px solid var(--glass-hair);
-  box-shadow: var(--glass-shadow);
-  transition: transform 0.3s var(--ease-out-expo), border-color 0.25s ease, box-shadow 0.3s ease;
-}
-
-.sing-wordbox:hover {
-  border-color: var(--lemon);
-  box-shadow: 0 0 20px -2px rgba(249, 233, 0, 0.35);
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
 }
 
 .sing-wordbox-frame {
@@ -546,17 +537,27 @@ select,
   pointer-events: none;
 }
 
-.sing-wordbox-frame path {
-  fill: rgba(36, 36, 35, 0.85);
-  stroke: rgba(249, 233, 0, 0.35);
-  stroke-width: 1.25;
+.sing-wordbox-bg-a {
+  fill: rgba(36, 36, 35, 0.90);
+  stroke: rgba(255, 255, 255, 0.12);
+  stroke-width: 1;
   vector-effect: non-scaling-stroke;
-  transition: stroke 0.2s ease;
 }
 
-.sing-wordbox:hover .sing-wordbox-frame path {
+.sing-wordbox-bg-b {
+  fill: rgba(20, 20, 19, 0.45);
+  stroke: rgba(255, 255, 255, 0.08);
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+}
+
+.sing-wordbox-slice-line {
+  fill: none;
   stroke: var(--lemon);
-  stroke-width: 1.6;
+  stroke-width: 2;
+  stroke-linecap: round;
+  vector-effect: non-scaling-stroke;
+  filter: drop-shadow(0 0 10px rgba(249, 233, 0, 0.65));
 }
 
 .sing-wordbox-t {
@@ -609,18 +610,24 @@ select,
   top: 50%;
   left: 20%;
   transform: translate(-50%, -50%);
+  align-items: flex-start;
+  text-align: left;
 }
 
 .sing-wordbox--p2 {
   top: 50%;
   left: 80%;
   transform: translate(-50%, -50%);
+  align-items: flex-end;
+  text-align: right;
 }
 
 .sing-wordbox--p3 {
   top: 79%;
   left: 50%;
   transform: translate(-50%, -50%);
+  align-items: center;
+  text-align: center;
 }
 
 .sing-const {
