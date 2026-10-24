@@ -6,7 +6,6 @@ import { createWordboxPath } from './wordboxPath';
 interface Pillar {
   id: number;
   word: string;
-  tag: string;
   desc: string;
   posClass: string;
 }
@@ -15,21 +14,18 @@ const PILLARS: Pillar[] = [
   {
     id: 1,
     word: 'Build.',
-    tag: 'OPEN TOOLS',
-    desc: 'Crafting useful software tools designed to solve real developer problems in the open-source ecosystem.',
+    desc: 'Crafting useful software tools designed to solve real problems for everyone in the open-source ecosystem.',
     posClass: 'sing-wordbox--p1',
   },
   {
     id: 2,
     word: 'Mentor.',
-    tag: 'APPRENTICESHIP',
     desc: 'Providing a supportive space for junior developers to master Git workflows, RFCs, and true collaboration.',
     posClass: 'sing-wordbox--p2',
   },
   {
     id: 3,
     word: 'Scale.',
-    tag: 'GLOBAL IMPACT',
     desc: 'Releasing battle-tested, high-performance packages and utilities adopted by developers worldwide.',
     posClass: 'sing-wordbox--p3',
   },
@@ -82,9 +78,6 @@ export default function WordboxPillars({ isActive = false }: { isActive?: boolea
               <span className="sing-wordbox-t">
                 <span className="sing-wordbox-num">{pillar.id}.</span>
                 {pillar.word}
-              </span>
-              <span className="text-[0.62rem] font-mono tracking-widest uppercase text-lemon px-2 py-0.5 rounded-none border border-lemon/30 bg-lemon/5">
-                {pillar.tag}
               </span>
             </div>
             <p className="sing-wordbox-desc">{pillar.desc}</p>
