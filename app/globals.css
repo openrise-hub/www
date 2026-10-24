@@ -355,7 +355,7 @@ select,
 
 .sing-beat--split-right {
   justify-content: flex-end;
-  text-align: right;
+  text-align: left;
 }
 
 .sing-col {
@@ -365,11 +365,13 @@ select,
   position: relative;
 }
 
-.sing-beat--split-left .sing-col {
+.sing-beat--split-left .sing-col,
+.sing-beat--split-right .sing-col {
   padding-left: clamp(1rem, 2.2vw, 1.8rem);
 }
 
-.sing-beat--split-left .sing-col::before {
+.sing-beat--split-left .sing-col::before,
+.sing-beat--split-right .sing-col::before {
   content: "";
   position: absolute;
   left: 0;

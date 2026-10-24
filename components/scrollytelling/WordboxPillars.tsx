@@ -26,7 +26,7 @@ const PILLARS: Pillar[] = [
   {
     id: 3,
     word: 'Scale.',
-    desc: 'Releasing battle-tested, high-performance packages and utilities adopted by developers worldwide.',
+    desc: "Shipping code that stays fast and doesn't break.",
     posClass: 'sing-wordbox--p3',
   },
 ];

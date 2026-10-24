@@ -9,8 +9,8 @@ import LogoBlackHole, { ScrollData } from './LogoBlackHole';
 import Hero3DHeadline from './Hero3DHeadline';
 import WordboxPillars from './WordboxPillars';
 import ProjectConstellation from './ProjectConstellation';
-import OpenSourceMatrix from './OpenSourceMatrix';
 import EcosystemHub from './EcosystemHub';
+import { GithubIcon, LinkedinIcon, ArrowRightIcon } from '@/components/ui';
 import { siteConfig } from '@/lib';
 
 if (typeof window !== 'undefined') {
@@ -22,7 +22,7 @@ const STAGES = [
   { id: 'pillars', label: '02 PILLARS', hudLabel: 'THREE PILLARS' },
   { id: 'core', label: '03 MISSION', hudLabel: 'UNIFIED MISSION' },
   { id: 'constellation', label: '04 PROJECTS', hudLabel: 'PROJECTS' },
-  { id: 'compare', label: '05 MATRIX', hudLabel: 'OPEN MATRIX' },
+  { id: 'community', label: '05 COMMUNITY', hudLabel: 'COMMUNITY & COLLAB' },
   { id: 'explore', label: '06 EXPLORE', hudLabel: 'ECOSYSTEM HUB' },
 ];
 
@@ -265,7 +265,7 @@ export default function ScrollytellingSingularity() {
             }`}
           >
             <div className="sing-col">
-              <span className="sing-kicker">One Collective, Infinite Impact</span>
+              <span className="sing-kicker">Expanding the Horizon</span>
               <h2 className="sing-h mb-6">
                 Beyond code, we build builders.
               </h2>
@@ -300,17 +300,42 @@ export default function ScrollytellingSingularity() {
           </div>
 
           <div
+            id="community"
             className={`sing-beat sing-beat--split-right ${
               activeStage === 4 ? 'is-active' : ''
             }`}
           >
             <div className="sing-col ml-auto">
-              <span className="sing-kicker">The Comparison</span>
-              <h2 className="sing-h">
-                Same utility.{' '}
-                <span className="g">Zero lock-in.</span>
+              <span className="sing-kicker">Community & Collaboration</span>
+              <h2 className="sing-h mb-4">
+                Built by developers,{' '}
+                <span className="g">for everyone.</span>
               </h2>
-              <OpenSourceMatrix />
+              <p className="sing-sub mb-8">
+                Join our growing collective of maintainers and contributors. Whether you want to solve a real tooling problem, submit your first pull request, or review RFCs, you are welcome here.
+              </p>
+
+              <div className="sing-cta-row">
+                <a
+                  href={`${siteConfig.links.github}/discussions`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="sing-cta sing-cta--primary cursor-target"
+                >
+                  <GithubIcon className="w-4 h-4" />
+                  <span>GitHub Discussions</span>
+                  <ArrowRightIcon className="w-4 h-4 ml-1" />
+                </a>
+                <a
+                  href={siteConfig.links.linkedin}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="sing-cta sing-cta--ghost cursor-target"
+                >
+                  <LinkedinIcon className="w-4 h-4" />
+                  <span>LinkedIn Updates</span>
+                </a>
+              </div>
             </div>
           </div>
 

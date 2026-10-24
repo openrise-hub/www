@@ -24,6 +24,7 @@ export default function ProjectConstellation({ isActive = false }: { isActive?: 
         if (Array.isArray(data)) {
           const filtered = data
             .filter((r: Repository) => r.name !== 'www')
+            .sort((a: Repository, b: Repository) => (b.stargazers_count ?? 0) - (a.stargazers_count ?? 0))
             .slice(0, 4);
           setRepos(filtered);
         }
