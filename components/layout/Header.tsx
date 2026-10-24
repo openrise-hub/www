@@ -39,7 +39,7 @@ export default function Header() {
 
   return (
     <>
-      <header className="sticky top-0 left-0 right-0 z-60 w-full flex justify-center pt-2 pointer-events-none">
+      <header className="fixed top-0 left-0 right-0 z-50 w-full flex justify-center pt-2 pointer-events-none">
         <div className={`
           w-full max-w-6xl flex items-center justify-between px-6 py-4 pointer-events-auto
           transition-all duration-500 ease-in-out

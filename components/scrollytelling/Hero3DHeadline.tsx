@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useEffect, useState } from 'react';
+import { useRef, useEffect, useState, useCallback } from 'react';
 import { useThree, useFrame } from '@react-three/fiber';
 import * as THREE from 'three';
 import * as BAS from 'three-bas';
@@ -49,6 +49,8 @@ function createAnimatedTextMesh(
 
   const aAnimation = new Float32Array(vertexCount * 2);
   const aDisplacement = new Float32Array(vertexCount * 3);
+  const aCentroid = new Float32Array(vertexCount * 3);
+  const aDrift = new Float32Array(vertexCount * 3);
 
   const animationDuration = 1.0;
 
@@ -58,9 +60,17 @@ function createAnimatedTextMesh(
     const delay = THREE.MathUtils.randFloat(0, 0.15);
     const duration = THREE.MathUtils.randFloat(0.4, 0.7);
 
-    const dx = THREE.MathUtils.randFloatSpread(0.04);
-    const dy = THREE.MathUtils.randFloat(0.01, 0.04);
-    const dz = THREE.MathUtils.randFloatSpread(0.03);
+    const dx = THREE.MathUtils.randFloatSpread(0.025);
+    const dy = THREE.MathUtils.randFloat(0.005, 0.025);
+    const dz = THREE.MathUtils.randFloatSpread(0.02);
+
+    const cx = (positionAttr.getX(i0) + positionAttr.getX(i1) + positionAttr.getX(i2)) / 3;
+    const cy = (positionAttr.getY(i0) + positionAttr.getY(i1) + positionAttr.getY(i2)) / 3;
+    const cz = (positionAttr.getZ(i0) + positionAttr.getZ(i1) + positionAttr.getZ(i2)) / 3;
+
+    const driftX = THREE.MathUtils.randFloatSpread(0.02);
+    const driftY = THREE.MathUtils.randFloat(0.005, 0.025);
+    const driftZ = THREE.MathUtils.randFloatSpread(0.015);
 
     for (const vertIdx of [i0, i1, i2]) {
       aAnimation[vertIdx * 2] = delay;
@@ -69,11 +79,21 @@ function createAnimatedTextMesh(
       aDisplacement[vertIdx * 3] = dx;
       aDisplacement[vertIdx * 3 + 1] = dy;
       aDisplacement[vertIdx * 3 + 2] = dz;
+
+      aCentroid[vertIdx * 3] = cx;
+      aCentroid[vertIdx * 3 + 1] = cy;
+      aCentroid[vertIdx * 3 + 2] = cz;
+
+      aDrift[vertIdx * 3] = driftX;
+      aDrift[vertIdx * 3 + 1] = driftY;
+      aDrift[vertIdx * 3 + 2] = driftZ;
     }
   }
 
   geometry.setAttribute('aAnimation', new THREE.BufferAttribute(aAnimation, 2));
   geometry.setAttribute('aDisplacement', new THREE.BufferAttribute(aDisplacement, 3));
+  geometry.setAttribute('aCentroid', new THREE.BufferAttribute(aCentroid, 3));
+  geometry.setAttribute('aDrift', new THREE.BufferAttribute(aDrift, 3));
 
   const materialProps = {
     flatShading,
@@ -89,8 +109,11 @@ function createAnimatedTextMesh(
     ],
     vertexParameters: [
       'uniform float uTime;',
+      'uniform float uDissolve;',
       'attribute vec2 aAnimation;',
       'attribute vec3 aDisplacement;',
+      'attribute vec3 aCentroid;',
+      'attribute vec3 aDrift;',
     ],
     vertexInit: [
       'float tProgress = 0.0;',
@@ -100,9 +123,12 @@ function createAnimatedTextMesh(
       '  float tTime = clamp(uTime - tDelay, 0.0, tDuration);',
       '  tProgress = easeCubicOut(tTime, 0.0, 1.0, tDuration);',
       '}',
+      'float finishPhase = smoothstep(0.88, 1.0, uDissolve);',
+      'float shrink = clamp(1.0 - pow(finishPhase, 1.6), 0.0, 1.0);',
     ],
     vertexPosition: [
-      'transformed += aDisplacement * tProgress;',
+      'vec3 toVertex = transformed - aCentroid;',
+      'transformed = aCentroid + (toVertex + aDisplacement * tProgress) * shrink + aDrift * pow(finishPhase, 1.3);',
     ],
     diffuse: new THREE.Color(diffuseColor),
     specular: new THREE.Color(0x222222),
@@ -126,12 +152,12 @@ function createAnimatedTextMesh(
       this._animationProgress = v;
       this.material.uniforms.uTime.value = this.animationDuration * v;
       this.material.uniforms.uDissolve.value = v;
-      const fadeStart = 0.12;
+      const fadeStart = 0.90;
       if (v < fadeStart) {
         this.material.opacity = 1.0;
       } else {
         const fadeProgress = (v - fadeStart) / (1.0 - fadeStart);
-        this.material.opacity = Math.max(0, 1.0 - Math.pow(Math.min(1, fadeProgress), 1.3));
+        this.material.opacity = Math.max(0.0, 1.0 - Math.pow(fadeProgress, 1.4));
       }
     },
   });
@@ -236,9 +262,9 @@ export default function Hero3DHeadline({ scrollDataRef }: Hero3DHeadlineProps) {
     textMeshes.push(osMesh);
     groupRef.current.add(osMesh);
 
-    const p0 = new THREE.Vector3(empBounds.min.x + 0.01, -0.046, 0.01);
-    const p1 = new THREE.Vector3((empBounds.min.x + empBounds.max.x) * 0.5, -0.034, 0.01);
-    const p2 = new THREE.Vector3(empBounds.max.x - 0.01, -0.046, 0.01);
+    const p0 = new THREE.Vector3(empBounds.min.x + 0.01, 0.008, 0.01);
+    const p1 = new THREE.Vector3((empBounds.min.x + empBounds.max.x) * 0.5, 0.020, 0.01);
+    const p2 = new THREE.Vector3(empBounds.max.x - 0.01, 0.008, 0.01);
     const curve = new THREE.QuadraticBezierCurve3(p0, p1, p2);
     const underlineGeo = new THREE.TubeGeometry(curve, 32, 0.0042, 8, false);
     const underlineMesh = createAnimatedTextMesh(underlineGeo, 0xf9e900, false);
@@ -256,29 +282,55 @@ export default function Hero3DHeadline({ scrollDataRef }: Hero3DHeadlineProps) {
     };
   }, [font]);
 
+  const syncWithSlot = useCallback(() => {
+    if (!groupRef.current) return;
+    const slotEl = document.getElementById('hero-3d-slot');
+    const dist = 4.5;
+    const frustumH = 2 * Math.tan((35 * Math.PI / 180) / 2) * dist;
+    const frustumW = frustumH * (size.width / size.height);
+
+    let posY = 0.02;
+    const targetWidth3D = frustumW * (size.width < 768 ? 0.88 : 0.62);
+    const scaleByWidth = targetWidth3D / 2.50;
+    let finalScale = scaleByWidth;
+
+    if (slotEl) {
+      const rect = slotEl.getBoundingClientRect();
+      const screenCenterY = window.innerHeight / 2;
+      const slotCenterY = rect.top + rect.height / 2;
+      const offsetPixelsY = -(slotCenterY - screenCenterY);
+      posY = (offsetPixelsY / window.innerHeight) * frustumH;
+
+      const slotH3D = (rect.height / window.innerHeight) * frustumH;
+      const scaleByHeight = (slotH3D * 0.78) / 0.42;
+      finalScale = Math.min(scaleByWidth, scaleByHeight);
+    }
+
+    groupRef.current.position.set(0, posY - 0.056 * finalScale, 0.5);
+    groupRef.current.scale.setScalar(finalScale);
+  }, [size]);
+
+  useEffect(() => {
+    syncWithSlot();
+    window.addEventListener('resize', syncWithSlot);
+    return () => window.removeEventListener('resize', syncWithSlot);
+  }, [syncWithSlot]);
+
   useFrame(() => {
     if (meshesRef.current.length === 0) return;
     const dissolve = scrollDataRef?.current?.heroDissolve ?? 0;
 
     if (groupRef.current) {
-      groupRef.current.visible = dissolve < 0.95;
+      groupRef.current.visible = dissolve < 1.0;
     }
 
-    if (dissolve < 0.95) {
+    if (dissolve < 1.0) {
+      syncWithSlot();
       meshesRef.current.forEach((mesh) => {
         mesh.animationProgress = dissolve;
       });
     }
   });
-
-  useEffect(() => {
-    if (!groupRef.current) return;
-    const vHeight = 2 * 5 * Math.tan((35 * Math.PI / 180) / 2);
-    const vWidth = vHeight * (size.width / size.height);
-    const targetWidth = vWidth * (size.width < 768 ? 0.85 : 0.60);
-    const scale = targetWidth / 2.55;
-    groupRef.current.scale.setScalar(scale);
-  }, [size]);
 
   return (
     <group ref={groupRef} position={[0, 0.05, 0.5]} />

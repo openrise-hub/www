@@ -1,6 +1,6 @@
 export const siteConfig = {
   name: "Openrise",
-  description: "We build software tools designed to solve real problems for the open-source community.",
+  description: "We build open-source software tools designed to solve real problems for everyone.",
   url: "https://openrise.dev",
   links: {
     github: "https://github.com/openrise-hub",

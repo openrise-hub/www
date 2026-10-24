@@ -430,7 +430,7 @@ select,
 
 .sing-sub {
   font-family: var(--font-sans);
-  font-weight: 450;
+  font-weight: 600;
   font-size: var(--fs-body);
   line-height: 1.6;
   color: #e5e7eb;
@@ -576,20 +576,47 @@ select,
   line-height: 1.45;
 }
 
+.sing-section-header {
+  position: absolute;
+  top: clamp(5.75rem, 11vh, 7.5rem);
+  left: 50%;
+  transform: translateX(-50%);
+  text-align: center;
+  z-index: 25;
+  pointer-events: none;
+  width: max-content;
+  max-width: min(650px, 90vw);
+  padding: 0.75rem 2rem;
+  background: radial-gradient(ellipse at center, rgba(36, 36, 35, 0.95) 0%, rgba(36, 36, 35, 0.75) 65%, transparent 100%);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.sing-section-header .sing-h {
+  text-shadow: 0 2px 20px rgba(0, 0, 0, 0.95), 0 0 35px rgba(36, 36, 35, 0.95);
+}
+
+.sing-section-header .sing-kicker {
+  text-shadow: 0 2px 14px rgba(0, 0, 0, 0.95);
+}
+
 .sing-wordbox--p1 {
-  top: 45%;
+  top: 50%;
   left: 20%;
   transform: translate(-50%, -50%);
 }
 
 .sing-wordbox--p2 {
-  top: 45%;
+  top: 50%;
   left: 80%;
   transform: translate(-50%, -50%);
 }
 
 .sing-wordbox--p3 {
-  top: 76%;
+  top: 79%;
   left: 50%;
   transform: translate(-50%, -50%);
 }
@@ -916,24 +943,40 @@ select,
   .h2-side {
     display: none;
   }
+  .sing-beat {
+    overflow-y: auto !important;
+    padding: 5rem 1.25rem 2.5rem 1.25rem !important;
+    align-items: center;
+  }
+  .sing-section-header {
+    position: static;
+    transform: none;
+    margin-bottom: 1.5rem;
+    padding-top: 0;
+  }
   .sing-wordbox {
     position: static;
     transform: none !important;
     width: 100%;
+    max-width: 440px;
   }
   .sing-pillars-container {
     position: static;
     display: flex;
     flex-direction: column;
-    gap: 1rem;
-    padding: 1rem;
+    align-items: center;
+    gap: 1.25rem;
+    padding: 0.5rem 0;
+    width: 100%;
   }
   .sing-cards {
     position: static;
     width: 100%;
+    max-width: 440px;
     display: flex;
     flex-direction: column;
     gap: 1rem;
+    margin: 0 auto;
   }
   .sing-card {
     position: static;
@@ -943,8 +986,10 @@ select,
     position: static;
     display: flex;
     flex-direction: column;
+    align-items: center;
     gap: 1.5rem;
-    padding: 1rem;
+    padding: 0.5rem 0;
+    width: 100%;
   }
   .sing-const-svg {
     display: none;
