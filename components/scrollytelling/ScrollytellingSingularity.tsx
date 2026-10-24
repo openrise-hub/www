@@ -202,33 +202,43 @@ export default function ScrollytellingSingularity() {
               activeStage === 0 ? 'is-active' : ''
             }`}
           >
-            <span className="sing-kicker relative z-10">Open Source Collective</span>
+            <div className="w-full max-w-4xl mx-auto flex flex-col items-center justify-center">
+              <span className="sing-kicker relative z-10 !mb-0">Open Source Collective</span>
 
-            <h1 className="sr-only">
-              Build Useful Tools. Empower Open Source.
-            </h1>
+              <h1 className="sr-only">
+                Build Useful Tools. Empower Open Source.
+              </h1>
 
-            <div className="h-[140px] md:h-[175px] w-full pointer-events-none select-none" aria-hidden="true" />
+              <div
+                id="hero-3d-slot"
+                className="relative w-full max-w-3xl flex items-center justify-center pointer-events-none select-none"
+                style={{
+                  height: 'clamp(140px, 20vw, 190px)',
+                  marginTop: 'clamp(0.5rem, 1.5vh, 1rem)',
+                  marginBottom: 'clamp(0.75rem, 2vh, 1.25rem)',
+                }}
+              />
 
-            <p className="sing-sub relative z-10 text-center mx-auto max-w-2xl text-[#fcf7f8] font-medium text-base md:text-lg leading-relaxed drop-shadow-[0_2px_14px_rgba(0,0,0,0.95)]">
-              {siteConfig.description}
-            </p>
-            <div className="sing-cta-row relative z-10">
-              <button
-                type="button"
-                onClick={() => scrollToStage(3)}
-                className="sing-cta sing-cta--primary cursor-target"
-              >
-                Explore Projects
-              </button>
-              <a
-                href={siteConfig.links.github}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="sing-cta sing-cta--ghost cursor-target"
-              >
-                Join Community
-              </a>
+              <p className="sing-sub relative z-10 text-center mx-auto max-w-2xl text-[#fcf7f8] !font-bold text-base sm:text-lg md:text-xl leading-relaxed drop-shadow-[0_2px_14px_rgba(0,0,0,0.95)] !mt-0">
+                {siteConfig.description}
+              </p>
+              <div className="sing-cta-row relative z-10 mt-6 sm:mt-7">
+                <button
+                  type="button"
+                  onClick={() => scrollToStage(3)}
+                  className="sing-cta sing-cta--primary cursor-target"
+                >
+                  Explore Projects
+                </button>
+                <a
+                  href={siteConfig.links.github}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="sing-cta sing-cta--ghost cursor-target"
+                >
+                  Join Community
+                </a>
+              </div>
             </div>
           </div>
 
@@ -237,13 +247,13 @@ export default function ScrollytellingSingularity() {
               activeStage === 1 ? 'is-active' : ''
             }`}
           >
-            <div className="absolute top-[16%] left-1/2 -translate-x-1/2 text-center pointer-events-none">
+            <div className="sing-section-header">
               <span className="sing-kicker">Foundational Principles</span>
               <h2 className="sing-h text-2xl md:text-3xl">Three Pillars of Openrise</h2>
             </div>
             <WordboxPillars isActive={activeStage === 1} />
-            <div className="absolute bottom-[8%] left-1/2 -translate-x-1/2 text-center pointer-events-none">
-              <p className="text-sm font-mono tracking-wider text-slate uppercase">
+            <div className="absolute bottom-[6%] left-1/2 -translate-x-1/2 text-center pointer-events-none z-20">
+              <p className="text-xs sm:text-sm font-mono tracking-wider text-slate uppercase">
                 No gatekeeping. Pure collaboration. Built in the open.
               </p>
             </div>
@@ -261,7 +271,7 @@ export default function ScrollytellingSingularity() {
               </h2>
               <p className="sing-sub">
                 Our mission is dual-fold: to build reliable, high-performance tools that eliminate
-                friction for open-source developers worldwide, while creating an apprenticeship
+                friction and empower people worldwide, while creating an apprenticeship
                 culture where junior engineers master production workflows, code reviews, and true collaboration.
               </p>
               <div className="sing-cta-row">
@@ -282,7 +292,7 @@ export default function ScrollytellingSingularity() {
               activeStage === 3 ? 'is-active' : ''
             }`}
           >
-            <div className="absolute top-[14%] left-1/2 -translate-x-1/2 text-center pointer-events-none">
+            <div className="sing-section-header">
               <span className="sing-kicker">Organization Repositories</span>
               <h2 className="sing-h text-2xl md:text-3xl">Featured Projects</h2>
             </div>
