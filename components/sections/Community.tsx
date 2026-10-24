@@ -17,7 +17,7 @@ export default function Community() {
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
           <div className="lg:col-span-7">
             <h3 className="text-3xl md:text-4xl font-bold tracking-tight text-foreground mb-6 font-sans">
-              Built by developers, for developers. Open to everyone.
+              Built by developers, for everyone.
             </h3>
             <p className="text-lg leading-relaxed text-muted text-[#a2aba5] mb-8">
               Join our growing community of maintainers and contributors. Whether you are looking to solve a real tooling problem, submit your first open-source pull request, or review RFCs, you are welcome here.

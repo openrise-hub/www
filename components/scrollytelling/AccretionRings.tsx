@@ -35,7 +35,7 @@ const RINGS: RingData[] = [
     direction: -1,
   },
   {
-    text: 'OPENRISE • BY DEVELOPERS FOR DEVELOPERS • ',
+    text: 'OPENRISE • FROM DEVELOPERS TO EVERYONE • ',
     radius: 2.38,
     fontSize: 0.050,
     depth: 0.003,
