@@ -968,12 +968,11 @@ select,
 
 .sing-hub-wing {
   position: absolute;
-  top: 0;
-  bottom: 0;
+  top: 50%;
+  transform: translateY(-50%);
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  gap: 1.5rem;
+  gap: 1.75rem;
   width: clamp(230px, 17.5vw, 275px);
   pointer-events: none;
 }

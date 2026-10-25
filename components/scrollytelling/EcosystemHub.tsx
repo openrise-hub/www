@@ -215,8 +215,15 @@ export default function EcosystemHub({ isActive = false }: { isActive?: boolean 
       <div
         className="sing-hub-wing sing-hub-wing--l"
         style={{
+          position: 'absolute',
+          top: '50%',
+          transform: 'translateY(-50%)',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '1.75rem',
           left: 'clamp(4.5rem, 13.5vw, 16rem)',
           width: 'clamp(230px, 17.5vw, 275px)',
+          pointerEvents: 'none',
         }}
       >
         {LEFT_CARDS.map((item, idx) => {
@@ -253,8 +260,15 @@ export default function EcosystemHub({ isActive = false }: { isActive?: boolean 
       <div
         className="sing-hub-wing sing-hub-wing--r"
         style={{
+          position: 'absolute',
+          top: '50%',
+          transform: 'translateY(-50%)',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '1.75rem',
           right: 'clamp(5.5rem, 14.5vw, 17rem)',
           width: 'clamp(230px, 17.5vw, 275px)',
+          pointerEvents: 'none',
         }}
       >
         {RIGHT_CARDS.map((item, idx) => {
