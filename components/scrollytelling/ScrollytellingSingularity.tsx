@@ -45,12 +45,39 @@ export default function ScrollytellingSingularity() {
 
   const scrollToStage = (stageIdx: number) => {
     if (!containerRef.current) return;
-    const totalHeight = containerRef.current.scrollHeight - window.innerHeight;
-    const targetY = containerRef.current.offsetTop + (stageIdx / STAGES.length) * totalHeight;
+    const totalScroll = STAGES.length * window.innerHeight;
+    const stageFraction = stageIdx === 0 ? 0 : (stageIdx + 0.35) / STAGES.length;
+    const targetY = containerRef.current.offsetTop + stageFraction * totalScroll;
     if (lenisRef.current) {
       lenisRef.current.scrollTo(targetY, { duration: 1.4 });
     } else {
       window.scrollTo({ top: targetY, behavior: 'smooth' });
+    }
+  };
+
+  const navigateTo = (rawTarget: string) => {
+    const target = rawTarget.replace('#', '').toLowerCase();
+    if (!target) return;
+
+    if (target === 'about' || target === 'pillars') {
+      scrollToStage(1);
+    } else if (target === 'projects' || target === 'constellation' || target === 'repositories') {
+      scrollToStage(3);
+    } else if (target === 'community') {
+      scrollToStage(4);
+    } else if (target === 'explore' || target === 'hub') {
+      scrollToStage(5);
+    } else if (target === 'start' || target === 'core' || target === 'home') {
+      scrollToStage(0);
+    } else if (target === 'blog' || target === 'contact') {
+      const el = document.getElementById(target);
+      if (el) {
+        if (lenisRef.current) {
+          lenisRef.current.scrollTo(el, { duration: 1.4 });
+        } else {
+          el.scrollIntoView({ behavior: 'smooth' });
+        }
+      }
     }
   };
 
@@ -71,15 +98,16 @@ export default function ScrollytellingSingularity() {
     gsap.ticker.add(tickerUpdate);
     gsap.ticker.lagSmoothing(0);
 
-    const handleHash = () => {
-      const hash = window.location.hash.replace('#', '');
-      if (!hash) return;
-      const idx = STAGES.findIndex(
-        (s) => s.id === hash || (hash === 'about' && s.id === 'pillars') || (hash === 'repositories' && s.id === 'constellation') || (hash === 'projects' && s.id === 'constellation')
-      );
-      if (idx !== -1) {
-        scrollToStage(idx);
+    const handleCustomNav = (e: Event) => {
+      const ce = e as CustomEvent<{ target: string }>;
+      if (ce.detail?.target) {
+        navigateTo(ce.detail.target);
       }
+    };
+    window.addEventListener('openrise-nav', handleCustomNav);
+
+    const handleHash = () => {
+      navigateTo(window.location.hash);
     };
     window.addEventListener('hashchange', handleHash);
     if (window.location.hash) {
@@ -140,6 +168,7 @@ export default function ScrollytellingSingularity() {
       gsap.ticker.remove(tickerUpdate);
       lenis.destroy();
       lenisRef.current = null;
+      window.removeEventListener('openrise-nav', handleCustomNav);
       window.removeEventListener('hashchange', handleHash);
     };
   }, []);
@@ -300,7 +329,6 @@ export default function ScrollytellingSingularity() {
           </div>
 
           <div
-            id="community"
             className={`sing-beat sing-beat--split-right ${
               activeStage === 4 ? 'is-active' : ''
             }`}
@@ -340,15 +368,14 @@ export default function ScrollytellingSingularity() {
           </div>
 
           <div
-            className={`sing-beat flex-col justify-center text-center ${
+            className={`sing-beat ${
               activeStage === 5 ? 'is-active' : ''
             }`}
           >
-            <span className="sing-kicker mx-auto">The Ecosystem Hub</span>
-            <h2 className="sing-h mb-2">Connect Across All Channels</h2>
-            <p className="sing-sub mx-auto max-w-xl text-center mb-6">
-              Community portals, technical articles, and direct maintainer lines.
-            </p>
+            <div className="sing-section-header">
+              <span className="sing-kicker">The Ecosystem Hub</span>
+              <h2 className="sing-h text-2xl md:text-3xl mb-1">Connect Across All Channels</h2>
+            </div>
             <EcosystemHub isActive={activeStage === 5} />
           </div>
         </div>

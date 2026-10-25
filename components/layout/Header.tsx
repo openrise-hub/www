@@ -36,6 +36,19 @@ export default function Header() {
     };
   }, []);
 
+  const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>, href: string) => {
+    e.preventDefault();
+    if (isMenuOpen) {
+      setIsMenuOpen(false);
+      document.body.style.overflow = 'unset';
+    }
+    if (window.location.hash === href) {
+      window.dispatchEvent(new HashChangeEvent('hashchange'));
+    } else {
+      window.location.hash = href;
+    }
+  };
+
   return (
     <>
       <header className="fixed top-0 left-0 right-0 z-50 w-full flex justify-center pt-2 pointer-events-none">
@@ -60,13 +73,14 @@ export default function Header() {
           
           <nav className="hidden md:flex items-center gap-2">
             {navLinks.map((link) => (
-              <Link
+              <a
                 key={link.label}
                 href={link.href}
+                onClick={(e) => handleNavClick(e, link.href)}
                 className="text-lg text-slate hover:text-foreground hover:bg-white/10 px-3 py-1.5 transition-all duration-200 cursor-target"
               >
                 {link.label}
-              </Link>
+              </a>
             ))}
           </nav>
 
@@ -86,14 +100,14 @@ export default function Header() {
       `}>
         <nav className="flex flex-col items-center gap-8">
           {navLinks.map((link) => (
-            <Link
+            <a
               key={link.label}
               href={link.href}
-              onClick={toggleMenu}
+              onClick={(e) => handleNavClick(e, link.href)}
               className="text-4xl font-bold text-slate hover:text-lemon transition-colors cursor-target"
             >
               {link.label}
-            </Link>
+            </a>
           ))}
         </nav>
       </div>
