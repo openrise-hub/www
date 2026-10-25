@@ -5,6 +5,7 @@ import { useFrame } from '@react-three/fiber';
 import { useGLTF, Float } from '@react-three/drei';
 import * as THREE from 'three';
 import AccretionRings from './AccretionRings';
+import { emitRingSync } from './ringSync';
 
 export interface ScrollData {
   progress: number;
@@ -46,6 +47,8 @@ export default function LogoBlackHole({ scrollDataRef }: LogoBlackHoleProps) {
   const ringsGroupRef = useRef<THREE.Group>(null);
   const positionRef = useRef<THREE.Group>(null);
   const [mouse, setMouse] = useState({ x: 0, y: 0 });
+  const syncCenter = useRef(new THREE.Vector3());
+  const syncPoint = useRef(new THREE.Vector3());
 
   const baseRotationX = 0.12;
   const baseRotationY = 0.18;
@@ -61,7 +64,7 @@ export default function LogoBlackHole({ scrollDataRef }: LogoBlackHoleProps) {
     return () => window.removeEventListener('mousemove', handleMouseMove);
   }, []);
 
-  useFrame(() => {
+  useFrame((state) => {
     if (!positionRef.current) return;
 
     const stage = scrollDataRef?.current?.activeStage ?? 0;
@@ -142,6 +145,36 @@ export default function LogoBlackHole({ scrollDataRef }: LogoBlackHoleProps) {
       ringsGroupRef.current.rotation.x += (targetRingsX - ringsGroupRef.current.rotation.x) * 0.06;
       ringsGroupRef.current.position.x += (mouse.x * 0.075 - ringsGroupRef.current.position.x) * 0.06;
       ringsGroupRef.current.position.y += (mouse.y * 0.075 - ringsGroupRef.current.position.y) * 0.06;
+
+      const center = syncCenter.current;
+      ringsGroupRef.current.getWorldPosition(center);
+      center.project(state.camera);
+      const cx = (center.x * 0.5 + 0.5) * window.innerWidth;
+      const cy = (-center.y * 0.5 + 0.5) * window.innerHeight;
+
+      const pt = syncPoint.current;
+      pt.set(1.72, 0, 0);
+      ringsGroupRef.current.localToWorld(pt);
+      pt.project(state.camera);
+      const midX = (pt.x * 0.5 + 0.5) * window.innerWidth;
+      const midY = (-pt.y * 0.5 + 0.5) * window.innerHeight;
+      const rMiddle = Math.hypot(midX - cx, midY - cy);
+
+      pt.set(0, -1.15, 0);
+      ringsGroupRef.current.localToWorld(pt);
+      pt.project(state.camera);
+      const inX = (pt.x * 0.5 + 0.5) * window.innerWidth;
+      const inY = (-pt.y * 0.5 + 0.5) * window.innerHeight;
+      const rInner = Math.hypot(inX - cx, inY - cy);
+
+      pt.set(2.38, 0, 0);
+      ringsGroupRef.current.localToWorld(pt);
+      pt.project(state.camera);
+      const outX = (pt.x * 0.5 + 0.5) * window.innerWidth;
+      const outY = (-pt.y * 0.5 + 0.5) * window.innerHeight;
+      const rOuter = Math.hypot(outX - cx, outY - cy);
+
+      emitRingSync({ cx, cy, rOuter, rMiddle, rInner });
     }
   });
 

@@ -9,8 +9,8 @@ import LogoBlackHole, { ScrollData } from './LogoBlackHole';
 import Hero3DHeadline from './Hero3DHeadline';
 import WordboxPillars from './WordboxPillars';
 import ProjectConstellation from './ProjectConstellation';
-import OpenSourceMatrix from './OpenSourceMatrix';
 import EcosystemHub from './EcosystemHub';
+import { GithubIcon, LinkedinIcon, ArrowRightIcon } from '@/components/ui';
 import { siteConfig } from '@/lib';
 
 if (typeof window !== 'undefined') {
@@ -22,7 +22,7 @@ const STAGES = [
   { id: 'pillars', label: '02 PILLARS', hudLabel: 'THREE PILLARS' },
   { id: 'core', label: '03 MISSION', hudLabel: 'UNIFIED MISSION' },
   { id: 'constellation', label: '04 PROJECTS', hudLabel: 'PROJECTS' },
-  { id: 'compare', label: '05 MATRIX', hudLabel: 'OPEN MATRIX' },
+  { id: 'community', label: '05 COMMUNITY', hudLabel: 'COMMUNITY & COLLAB' },
   { id: 'explore', label: '06 EXPLORE', hudLabel: 'ECOSYSTEM HUB' },
 ];
 
@@ -45,12 +45,39 @@ export default function ScrollytellingSingularity() {
 
   const scrollToStage = (stageIdx: number) => {
     if (!containerRef.current) return;
-    const totalHeight = containerRef.current.scrollHeight - window.innerHeight;
-    const targetY = containerRef.current.offsetTop + (stageIdx / STAGES.length) * totalHeight;
+    const totalScroll = STAGES.length * window.innerHeight;
+    const stageFraction = stageIdx === 0 ? 0 : (stageIdx + 0.35) / STAGES.length;
+    const targetY = containerRef.current.offsetTop + stageFraction * totalScroll;
     if (lenisRef.current) {
       lenisRef.current.scrollTo(targetY, { duration: 1.4 });
     } else {
       window.scrollTo({ top: targetY, behavior: 'smooth' });
+    }
+  };
+
+  const navigateTo = (rawTarget: string) => {
+    const target = rawTarget.replace('#', '').toLowerCase();
+    if (!target) return;
+
+    if (target === 'about' || target === 'pillars') {
+      scrollToStage(1);
+    } else if (target === 'projects' || target === 'constellation' || target === 'repositories') {
+      scrollToStage(3);
+    } else if (target === 'community') {
+      scrollToStage(4);
+    } else if (target === 'explore' || target === 'hub') {
+      scrollToStage(5);
+    } else if (target === 'start' || target === 'core' || target === 'home') {
+      scrollToStage(0);
+    } else if (target === 'blog' || target === 'contact') {
+      const el = document.getElementById(target);
+      if (el) {
+        if (lenisRef.current) {
+          lenisRef.current.scrollTo(el, { duration: 1.4 });
+        } else {
+          el.scrollIntoView({ behavior: 'smooth' });
+        }
+      }
     }
   };
 
@@ -71,15 +98,16 @@ export default function ScrollytellingSingularity() {
     gsap.ticker.add(tickerUpdate);
     gsap.ticker.lagSmoothing(0);
 
-    const handleHash = () => {
-      const hash = window.location.hash.replace('#', '');
-      if (!hash) return;
-      const idx = STAGES.findIndex(
-        (s) => s.id === hash || (hash === 'repositories' && s.id === 'constellation') || (hash === 'projects' && s.id === 'constellation')
-      );
-      if (idx !== -1) {
-        scrollToStage(idx);
+    const handleCustomNav = (e: Event) => {
+      const ce = e as CustomEvent<{ target: string }>;
+      if (ce.detail?.target) {
+        navigateTo(ce.detail.target);
       }
+    };
+    window.addEventListener('openrise-nav', handleCustomNav);
+
+    const handleHash = () => {
+      navigateTo(window.location.hash);
     };
     window.addEventListener('hashchange', handleHash);
     if (window.location.hash) {
@@ -140,6 +168,7 @@ export default function ScrollytellingSingularity() {
       gsap.ticker.remove(tickerUpdate);
       lenis.destroy();
       lenisRef.current = null;
+      window.removeEventListener('openrise-nav', handleCustomNav);
       window.removeEventListener('hashchange', handleHash);
     };
   }, []);
@@ -265,7 +294,7 @@ export default function ScrollytellingSingularity() {
             }`}
           >
             <div className="sing-col">
-              <span className="sing-kicker">One Collective, Infinite Impact</span>
+              <span className="sing-kicker">Expanding the Horizon</span>
               <h2 className="sing-h mb-6">
                 Beyond code, we build builders.
               </h2>
@@ -305,25 +334,48 @@ export default function ScrollytellingSingularity() {
             }`}
           >
             <div className="sing-col ml-auto">
-              <span className="sing-kicker">The Comparison</span>
-              <h2 className="sing-h">
-                Same utility.{' '}
-                <span className="g">Zero lock-in.</span>
+              <span className="sing-kicker">Community & Collaboration</span>
+              <h2 className="sing-h mb-4">
+                Built by developers,{' '}
+                <span className="g">for everyone.</span>
               </h2>
-              <OpenSourceMatrix />
+              <p className="sing-sub mb-8">
+                Join our growing collective of maintainers and contributors. Whether you want to solve a real tooling problem, submit your first pull request, or review RFCs, you are welcome here.
+              </p>
+
+              <div className="sing-cta-row">
+                <a
+                  href={`${siteConfig.links.github}/discussions`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="sing-cta sing-cta--primary cursor-target"
+                >
+                  <GithubIcon className="w-4 h-4" />
+                  <span>GitHub Discussions</span>
+                  <ArrowRightIcon className="w-4 h-4 ml-1" />
+                </a>
+                <a
+                  href={siteConfig.links.linkedin}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="sing-cta sing-cta--ghost cursor-target"
+                >
+                  <LinkedinIcon className="w-4 h-4" />
+                  <span>LinkedIn Updates</span>
+                </a>
+              </div>
             </div>
           </div>
 
           <div
-            className={`sing-beat flex-col justify-center text-center ${
+            className={`sing-beat ${
               activeStage === 5 ? 'is-active' : ''
             }`}
           >
-            <span className="sing-kicker mx-auto">The Ecosystem Hub</span>
-            <h2 className="sing-h mb-2">Connect Across All Channels</h2>
-            <p className="sing-sub mx-auto max-w-xl text-center mb-6">
-              Community portals, technical articles, and direct maintainer lines.
-            </p>
+            <div className="sing-section-header">
+              <span className="sing-kicker">The Ecosystem Hub</span>
+              <h2 className="sing-h text-2xl md:text-3xl mb-1">Connect Across All Channels</h2>
+            </div>
             <EcosystemHub isActive={activeStage === 5} />
           </div>
         </div>

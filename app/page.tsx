@@ -1,4 +1,4 @@
-import { Footer, Community, Blog, Contact } from "@/components";
+import { Footer, Blog, Contact } from "@/components";
 import ScrollytellingSingularity from "@/components/scrollytelling/ScrollytellingSingularity";
 
 export default function Home() {
@@ -10,7 +10,6 @@ export default function Home() {
 
       <main className="flex-1">
         <ScrollytellingSingularity />
-        <Community />
         <Blog />
         <Contact />
       </main>
